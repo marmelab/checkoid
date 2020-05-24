@@ -2,7 +2,7 @@ const { Validation } = require("./Validation");
 const Result = require("./Result");
 
 describe("Validation", () => {
-    it("should allow to run validation return ning Result", () => {
+    it("should allow to run validation returning Result", () => {
         const validation = Validation((key, value) => {
             if (/@/.test(value)) {
                 return Result.Valid(value);

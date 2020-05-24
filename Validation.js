@@ -1,3 +1,5 @@
+const Result = require("./Result");
+
 // run is a function that return a Result
 const Validation = (run) => ({
     run,
