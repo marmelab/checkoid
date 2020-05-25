@@ -1,5 +1,4 @@
 const Task = (fork) => ({
-    map: (f) => Task((reject, resolve) => fork(reject, (a) => resolve(f(a)))),
     and: (other) =>
         Task((reject, resolve) =>
             fork(reject, (result1) => {
@@ -17,9 +16,15 @@ const Task = (fork) => ({
 });
 Task.of = (a) => Task((_, resolve) => resolve(a));
 
-Task.fromAsync = (asyncFn) =>
+Task.fromFn = (fn) =>
     Task((reject, resolve) => {
-        Promise.resolve(asyncFn()).then(resolve).catch(reject);
+        try {
+            // Promise.resolve will convert the result to a promise if it is not
+            Promise.resolve(fn()).then(resolve).catch(reject);
+        } catch (error) {
+            // catch eventual synchronous error
+            reject(error);
+        }
     });
 
 module.exports = Task;

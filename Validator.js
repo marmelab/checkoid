@@ -7,7 +7,6 @@ const Validator = (run) => ({
     or: (other) => Validator((x, key) => run(x, key).or(other.run(x, key))),
 });
 
-Validator.fromFn = (fn) =>
-    Validator((x, key) => Task.fromAsync(async () => fn(x, key)));
+Validator.fromFn = (fn) => Validator((x, key) => Task.fromFn(() => fn(x, key)));
 
 exports.Validator = Validator;
