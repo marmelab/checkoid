@@ -1,4 +1,4 @@
-const validate = require("./validate");
+const validateObject = require("./validateObject");
 const Validation = require("./Validation");
 const { Validator } = require("./Validator");
 
@@ -28,14 +28,14 @@ const isEmail = Validator((value, key) => {
     return Validation.Invalid([`${key} must be an email`]);
 });
 
-describe("validate", () => {
-    it("should allow to validate an user given a spec", () => {
+describe("validateObject", () => {
+    it("should allow to validateObject an user object given a spec", () => {
         const userSpec = {
             name: isPresent.and(isLongerThanTree),
             email: isEmail.or(isAbsent),
         };
 
-        const UserValidator = validate(userSpec);
+        const UserValidator = validateObject(userSpec);
 
         expect(UserValidator.run({ name: "toto" }).x).toEqual({
             name: "toto",
@@ -59,15 +59,15 @@ describe("validate", () => {
         ]);
     });
 
-    it("should allow to nest validate", () => {
+    it("should allow to nest validateObject", () => {
         const spec = {
-            user: validate({
+            user: validateObject({
                 name: isPresent.and(isLongerThanTree),
                 email: isEmail.or(isAbsent),
             }),
         };
 
-        const ComplexValidator = validate(spec);
+        const ComplexValidator = validateObject(spec);
 
         expect(ComplexValidator.run({ user: { name: "toto" } }).x).toEqual({
             user: {
