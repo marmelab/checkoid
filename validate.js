@@ -1,8 +1,8 @@
 const Result = require("./Result");
-const { Validation } = require("./Validation");
+const { Validator } = require("./Validator");
 
 const validate = (spec) =>
-    Validation((obj = {}, parentKey = []) => {
+    Validator((obj = {}, parentKey = []) => {
         return Object.keys(spec).reduce((acc, key) => {
             return acc.and(
                 spec[key].run(

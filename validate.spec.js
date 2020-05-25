@@ -1,27 +1,27 @@
 const validate = require("./validate");
 const Result = require("./Result");
-const { Validation } = require("./Validation");
+const { Validator } = require("./Validator");
 
-const isPresent = Validation((value, key) => {
+const isPresent = Validator((value, key) => {
     if (!!value) {
         return Result.Valid(value);
     }
     return Result.Invalid([`${key} must be present`]);
 });
 
-const isLongerThanTree = Validation((value, key) => {
+const isLongerThanTree = Validator((value, key) => {
     if (value && value.length > 3) {
         return Result.Valid(value);
     }
     return Result.Invalid([`${key} must be longer than 3`]);
 });
-const isAbsent = Validation((value, key) => {
+const isAbsent = Validator((value, key) => {
     if (!!value) {
         return Result.Invalid([`${key} can be absent`]);
     }
     return Result.Valid(value);
 });
-const isEmail = Validation((value, key) => {
+const isEmail = Validator((value, key) => {
     if (/@/.test(value)) {
         return Result.Valid(value);
     }
@@ -35,26 +35,26 @@ describe("validate", () => {
             email: isEmail.or(isAbsent),
         };
 
-        const UserValidation = validate(userSpec);
+        const UserValidator = validate(userSpec);
 
-        expect(UserValidation.run({ name: "toto" }).x).toEqual({
+        expect(UserValidator.run({ name: "toto" }).x).toEqual({
             name: "toto",
         });
         expect(
-            UserValidation.run({ name: "toto", email: "toto@gmail.com" }).x
+            UserValidator.run({ name: "toto", email: "toto@gmail.com" }).x
         ).toEqual({ name: "toto", email: "toto@gmail.com" });
 
-        expect(UserValidation.run({ name: "toto" }).x).toEqual({
+        expect(UserValidator.run({ name: "toto" }).x).toEqual({
             name: "toto",
         });
         expect(
-            UserValidation.run({ name: "toto", email: "pas un email" }).x
+            UserValidator.run({ name: "toto", email: "pas un email" }).x
         ).toEqual(["email must be an email", "email can be absent"]);
-        expect(UserValidation.run({ name: "", email: "" }).x).toEqual([
+        expect(UserValidator.run({ name: "", email: "" }).x).toEqual([
             "name must be present",
             "name must be longer than 3",
         ]);
-        expect(UserValidation.run({ name: "to", email: "" }).x).toEqual([
+        expect(UserValidator.run({ name: "to", email: "" }).x).toEqual([
             "name must be longer than 3",
         ]);
     });
@@ -67,15 +67,15 @@ describe("validate", () => {
             }),
         };
 
-        const ComplexValidation = validate(spec);
+        const ComplexValidator = validate(spec);
 
-        expect(ComplexValidation.run({ user: { name: "toto" } }).x).toEqual({
+        expect(ComplexValidator.run({ user: { name: "toto" } }).x).toEqual({
             user: {
                 name: "toto",
             },
         });
         expect(
-            ComplexValidation.run({ name: "toto", email: "toto@gmail.com" }).x
+            ComplexValidator.run({ name: "toto", email: "toto@gmail.com" }).x
         ).toEqual([
             "user.name must be present",
             "user.name must be longer than 3",
