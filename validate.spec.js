@@ -1,31 +1,31 @@
 const validate = require("./validate");
-const Result = require("./Result");
+const Validation = require("./Validation");
 const { Validator } = require("./Validator");
 
 const isPresent = Validator((value, key) => {
     if (!!value) {
-        return Result.Valid(value);
+        return Validation.Valid(value);
     }
-    return Result.Invalid([`${key} must be present`]);
+    return Validation.Invalid([`${key} must be present`]);
 });
 
 const isLongerThanTree = Validator((value, key) => {
     if (value && value.length > 3) {
-        return Result.Valid(value);
+        return Validation.Valid(value);
     }
-    return Result.Invalid([`${key} must be longer than 3`]);
+    return Validation.Invalid([`${key} must be longer than 3`]);
 });
 const isAbsent = Validator((value, key) => {
     if (!!value) {
-        return Result.Invalid([`${key} can be absent`]);
+        return Validation.Invalid([`${key} can be absent`]);
     }
-    return Result.Valid(value);
+    return Validation.Valid(value);
 });
 const isEmail = Validator((value, key) => {
     if (/@/.test(value)) {
-        return Result.Valid(value);
+        return Validation.Valid(value);
     }
-    return Result.Invalid([`${key} must be an email`]);
+    return Validation.Invalid([`${key} must be an email`]);
 });
 
 describe("validate", () => {

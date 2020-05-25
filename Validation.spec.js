@@ -1,7 +1,7 @@
-const Result = require("./Result");
-const { Valid, Invalid } = Result;
+const Validation = require("./Validation");
+const { Valid, Invalid } = Validation;
 
-describe("Result", () => {
+describe("Validation", () => {
     describe("and", () => {
         it("Valid and Valid should keep the first Valid value", () => {
             const res = Valid("valid").and(Valid("whatever"));

@@ -1,4 +1,4 @@
-const Result = require("./Result");
+const Validation = require("./Validation");
 const { Validator } = require("./Validator");
 
 const validate = (spec) =>
@@ -10,7 +10,7 @@ const validate = (spec) =>
                     [].concat(parentKey).concat(key).join(".")
                 )
             );
-        }, Result.Valid(obj));
+        }, Validation.Valid(obj));
     });
 
 module.exports = validate;
