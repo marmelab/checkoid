@@ -5,7 +5,10 @@ const Validator = (run) => ({
     run,
     and: (other) => Validator((x, key) => run(x, key).and(other.run(x, key))),
     or: (other) => Validator((x, key) => run(x, key).or(other.run(x, key))),
-    check: (x, key) => run(x, key).toPromise(),
+    check: (x, key) =>
+        run(x, key)
+            .toPromise()
+            .then(({ x }) => x),
 });
 
 const validator = (fn) => Validator((x, key) => Task.fromFn(() => fn(x, key)));

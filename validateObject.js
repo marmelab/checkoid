@@ -1,7 +1,8 @@
 const Validation = require("./Validation");
 const { Validator } = require("./Validator");
+const Task = require("./Task");
 
-const validate = (spec) =>
+const validateObject = (spec) =>
     Validator((obj = {}, parentKey = []) => {
         return Object.keys(spec).reduce((acc, key) => {
             return acc.and(
@@ -10,7 +11,7 @@ const validate = (spec) =>
                     [].concat(parentKey).concat(key).join(".")
                 )
             );
-        }, Validation.Valid(obj));
+        }, Task.of(Validation.Valid(obj)));
     });
 
-module.exports = validate;
+module.exports = validateObject;

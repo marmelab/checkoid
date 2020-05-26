@@ -30,25 +30,25 @@ describe("Validator", () => {
         });
 
         const validValidation = await validate.check("some@email.com", "email");
-        expect(validValidation.x).toBe("some@email.com");
+        expect(validValidation).toBe("some@email.com");
 
         const invalidValidation = await validate.check(
             "I will type whatever I want",
             "email"
         );
-        expect(invalidValidation.x).toEqual(["email must be an email"]);
+        expect(invalidValidation).toEqual(["email must be an email"]);
     });
 
     it("should allow to combine validator with and", async () => {
         const validValidation = await isPresent
             .and(isEmail)
             .check("some@email.com", "email");
-        expect(validValidation.x).toBe("some@email.com");
+        expect(validValidation).toBe("some@email.com");
 
         const noValueValidation = await isPresent
             .and(isEmail)
             .check("", "email");
-        expect(noValueValidation.x).toEqual([
+        expect(noValueValidation).toEqual([
             "email must be present",
             "email must be an email",
         ]);
@@ -56,28 +56,25 @@ describe("Validator", () => {
         const invalidEmailValidation = await isPresent
             .and(isEmail)
             .check("whatever", "email");
-        expect(invalidEmailValidation.x).toEqual(["email must be an email"]);
+        expect(invalidEmailValidation).toEqual(["email must be an email"]);
     });
 
     it("should allow to combine validator with or", async () => {
         const emailValidation = await isEmail
             .or(isAbsent)
             .check("some@email.com", "email");
-        expect(emailValidation.x).toBe("some@email.com");
-        expect(emailValidation.isValid).toBe(true);
+        expect(emailValidation).toBe("some@email.com");
 
         const noValueValidation = await isEmail.or(isAbsent).check("", "email");
-        expect(noValueValidation.x).toBe("");
-        expect(noValueValidation.isValid).toBe(true);
+        expect(noValueValidation).toBe("");
 
         const invalidEmailValidation = await isEmail
             .or(isAbsent)
             .check("whatever", "email");
-        expect(invalidEmailValidation.x).toEqual([
+        expect(invalidEmailValidation).toEqual([
             "email must be an email",
             "email can be absent",
         ]);
-        expect(invalidEmailValidation.isValid).toBe(false);
     });
 
     it("should support async validator function", async () => {
@@ -93,19 +90,16 @@ describe("Validator", () => {
         });
 
         const validValidation = await isPresentInDb.check("200", "userId");
-        expect(validValidation.x).toEqual("200");
-        expect(validValidation.isValid).toBe(true);
+        expect(validValidation).toEqual("200");
 
         const invalidValidation = await isPresent
             .and(isPresentInDb)
             .check("404", "userId");
-        expect(invalidValidation.x).toEqual(["userId does not exists"]);
-        expect(invalidValidation.isValid).toBe(false);
+        expect(invalidValidation).toEqual(["userId does not exists"]);
 
         const invalidValidation2 = await isPresent
             .and(isPresentInDb)
             .check("", "userId");
-        expect(invalidValidation2.x).toEqual(["userId must be present"]);
-        expect(invalidValidation2.isValid).toBe(false);
+        expect(invalidValidation2).toEqual(["userId must be present"]);
     });
 });
