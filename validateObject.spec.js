@@ -106,6 +106,7 @@ describe("validateObject", () => {
                 email: "toto@gmail.com",
             })
         ).toEqual([
+            "user is not an object",
             "user.name must be present",
             "user.name must be longer than 3",
         ]);

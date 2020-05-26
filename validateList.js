@@ -18,7 +18,7 @@ const validateList = (spec) => {
         : validateObject(spec);
 
     return IsList.and(
-        Validator((values = [], key = []) =>
+        Validator((values, key = []) =>
             values
                 .map((value, index) =>
                     validator.run(value, key.concat(`[${index}]`))
