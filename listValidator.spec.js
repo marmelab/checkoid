@@ -32,6 +32,19 @@ describe("listValidator", () => {
         ]);
     });
 
+    it("should return appropriate error if value is no array", async () => {
+        const emailValidator = isPresent.and(isEmail);
+        const res = await listValidator(emailValidator).check(
+            "Hi, trust me I am a list"
+        );
+        expect(res).toEqual([
+            {
+                message: "value must be an array",
+                value: "Hi, trust me I am a list",
+            },
+        ]);
+    });
+
     it("should allow to apply object validation to a list of value", async () => {
         const userValidators = objectValidator({
             name: isPresent,
@@ -89,6 +102,18 @@ describe("listValidator", () => {
                 key: "users[2].email",
                 message: "value must be an email",
                 value: "not an email",
+            },
+        ]);
+
+        expect(
+            await validators.check({
+                users: "A list of user :P",
+            })
+        ).toEqual([
+            {
+                key: "users",
+                message: "value must be an array",
+                value: "A list of user :P",
             },
         ]);
     });

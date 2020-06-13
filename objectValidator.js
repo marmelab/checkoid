@@ -7,7 +7,7 @@ const isObject = validator((value) => {
     if (typeof value === "object") {
         return Validation.Valid(value);
     }
-    return Validation.Invalid([`value is not an object`]);
+    return Validation.Invalid([{ message: `value is not an object`, value }]);
 });
 
 const objectValidator = (spec) =>
@@ -16,7 +16,7 @@ const objectValidator = (spec) =>
             return Object.keys(spec).reduce((acc, key) => {
                 return acc.and(
                     spec[key].run(obj[key]).map((message) =>
-                        message.key
+                        message.message
                             ? {
                                   key: `${key}${formatKey(message.key)}`,
                                   message: message.message,

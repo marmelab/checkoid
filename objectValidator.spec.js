@@ -57,6 +57,16 @@ describe("objectValidator", () => {
             { key: "name", message: "value must be present", value: "" },
             { key: "email", message: "value must be an email", value: "" },
         ]);
+
+        expect(await UserValidator.check("toto")).toEqual([
+            { message: "value is not an object", value: "toto" },
+            { key: "name", message: "value must be present", value: undefined },
+            {
+                key: "email",
+                message: "value must be an email",
+                value: undefined,
+            },
+        ]);
     });
 
     it("should allow to create a validator for an user object given a spec", async () => {
