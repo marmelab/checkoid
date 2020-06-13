@@ -4,6 +4,7 @@ const Valid = (x) => ({
     isValid: true,
     and: (other) => (other.isValid ? Valid(x) : Invalid(other.x)),
     or: (other) => Valid(x), // no matter the other we keep the valid value
+    map: (fn) => Valid(x),
     fold: (onValid, onInvalid) => onValid(x),
 });
 
@@ -16,6 +17,7 @@ const Invalid = (x) => ({
     and: (other) => (other.isValid ? Invalid(x) : Invalid(x.concat(other.x))),
     or: (other) =>
         other.isValid ? Valid(other.x) : Invalid(x.concat(other.x)),
+    map: (fn) => Invalid(x.map(fn)), // allows to apply function to invalid message
     fold: (onValid, onInvalid) => onInvalid(x),
 });
 

@@ -1,32 +1,32 @@
 const { validator } = require("./Validator");
 const Validation = require("./Validation");
 
-const isAbsent = validator((value, key) => {
+const isAbsent = validator((value) => {
     if (!!value) {
-        return Validation.Invalid([`${key} can be absent`]);
+        return Validation.Invalid([`value can be absent`]);
     }
     return Validation.Valid(value);
 });
-const isEmail = validator((value, key) => {
+const isEmail = validator((value) => {
     if (/@/.test(value)) {
         return Validation.Valid(value);
     }
-    return Validation.Invalid([`${key} must be an email`]);
+    return Validation.Invalid([`value must be an email`]);
 });
-const isPresent = validator((value, key) => {
+const isPresent = validator((value) => {
     if (!!value) {
         return Validation.Valid(value);
     }
-    return Validation.Invalid([`${key} must be present`]);
+    return Validation.Invalid([`value must be present`]);
 });
 
 describe("Validator", () => {
     it("should allow to run validator returning Validation", async () => {
-        const validate = validator((value, key) => {
+        const validate = validator((value) => {
             if (/@/.test(value)) {
                 return Validation.Valid(value);
             }
-            return Validation.Invalid([`${key} must be an email`]);
+            return Validation.Invalid([`value must be an email`]);
         });
 
         const validValidation = await validate.check("some@email.com", "email");
@@ -36,7 +36,7 @@ describe("Validator", () => {
             "I will type whatever I want",
             "email"
         );
-        expect(invalidValidation).toEqual(["email must be an email"]);
+        expect(invalidValidation).toEqual(["value must be an email"]);
     });
 
     it("should allow to combine validator with and", async () => {
@@ -49,14 +49,14 @@ describe("Validator", () => {
             .and(isEmail)
             .check("", "email");
         expect(noValueValidation).toEqual([
-            "email must be present",
-            "email must be an email",
+            "value must be present",
+            "value must be an email",
         ]);
 
         const invalidEmailValidation = await isPresent
             .and(isEmail)
             .check("whatever", "email");
-        expect(invalidEmailValidation).toEqual(["email must be an email"]);
+        expect(invalidEmailValidation).toEqual(["value must be an email"]);
     });
 
     it("should allow to combine validator with or", async () => {
@@ -72,8 +72,8 @@ describe("Validator", () => {
             .or(isAbsent)
             .check("whatever", "email");
         expect(invalidEmailValidation).toEqual([
-            "email must be an email",
-            "email can be absent",
+            "value must be an email",
+            "value can be absent",
         ]);
     });
 
@@ -83,7 +83,7 @@ describe("Validator", () => {
                 setTimeout(resolve, 500);
             });
             if (id === "404") {
-                return Validation.Invalid([`${key} does not exists`]);
+                return Validation.Invalid([`user does not exists`]);
             }
 
             return Validation.Valid(id);
@@ -94,12 +94,10 @@ describe("Validator", () => {
 
         const invalidValidation = await isPresent
             .and(isPresentInDb)
-            .check("404", "userId");
-        expect(invalidValidation).toEqual(["userId does not exists"]);
+            .check("404");
+        expect(invalidValidation).toEqual(["user does not exists"]);
 
-        const invalidValidation2 = await isPresent
-            .and(isPresentInDb)
-            .check("", "userId");
-        expect(invalidValidation2).toEqual(["userId must be present"]);
+        const invalidValidation2 = await isPresent.and(isPresentInDb).check("");
+        expect(invalidValidation2).toEqual(["value must be present"]);
     });
 });

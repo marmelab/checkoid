@@ -2,6 +2,7 @@ const Task = require("./Task");
 const { Validator, validator } = require("./Validator");
 const Validation = require("./Validation");
 const objectValidator = require("./objectValidator");
+const { formatKey } = require("./utils");
 
 const IsList = validator((value, key) => {
     if (Array.isArray(value)) {
@@ -18,10 +19,22 @@ const listValidator = (spec) => {
         : objectValidator(spec);
 
     return IsList.and(
-        Validator((values, key = []) =>
+        Validator((values) =>
             values
-                .map((value, index) =>
-                    validator.run(value, key.concat(`[${index}]`))
+                .map((value, key) =>
+                    validator.run(value).map((message) =>
+                        message.key
+                            ? {
+                                  key: `[${key}]${formatKey(message.key)}`,
+                                  message: message.message,
+                                  value: message.value,
+                              }
+                            : {
+                                  key: `[${key}]`,
+                                  message,
+                                  value,
+                              }
+                    )
                 )
                 .reduce(
                     (acc, task) => acc.and(task),

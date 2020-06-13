@@ -2,30 +2,30 @@ const objectValidator = require("./objectValidator");
 const Validation = require("./Validation");
 const { validator } = require("./Validator");
 
-const isPresent = validator((value, key) => {
+const isPresent = validator((value) => {
     if (!!value) {
         return Validation.Valid(value);
     }
-    return Validation.Invalid([`${key} must be present`]);
+    return Validation.Invalid([`value must be present`]);
 });
 
-const isLongerThanTree = validator((value, key) => {
+const isLongerThanTree = validator((value) => {
     if (value && value.length > 3) {
         return Validation.Valid(value);
     }
-    return Validation.Invalid([`${key} must be longer than 3`]);
+    return Validation.Invalid([`value must be longer than 3`]);
 });
-const isAbsent = validator((value, key) => {
+const isAbsent = validator((value) => {
     if (!!value) {
-        return Validation.Invalid([`${key} can be absent`]);
+        return Validation.Invalid([`value can be absent`]);
     }
     return Validation.Valid(value);
 });
-const isEmail = validator((value, key) => {
+const isEmail = validator((value) => {
     if (/@/.test(value)) {
         return Validation.Valid(value);
     }
-    return Validation.Invalid([`${key} must be an email`]);
+    return Validation.Invalid([`value must be an email`]);
 });
 
 describe("objectValidator", () => {
@@ -38,18 +38,24 @@ describe("objectValidator", () => {
         const UserValidator = objectValidator(userSpec);
 
         expect(await UserValidator.check({ name: "toto" })).toEqual([
-            "email must be an email",
+            { key: "email", message: "value must be an email" },
         ]);
         expect(
             await UserValidator.check({ name: "toto", email: "toto@gmail.com" })
         ).toEqual({ name: "toto", email: "toto@gmail.com" });
 
         expect(
-            await UserValidator.check({ name: "toto", email: "pas un email" })
-        ).toEqual(["email must be an email"]);
+            await UserValidator.check({ name: "toto", email: "not an email" })
+        ).toEqual([
+            {
+                key: "email",
+                message: "value must be an email",
+                value: "not an email",
+            },
+        ]);
         expect(await UserValidator.check({ name: "", email: "" })).toEqual([
-            "name must be present",
-            "email must be an email",
+            { key: "name", message: "value must be present", value: "" },
+            { key: "email", message: "value must be an email", value: "" },
         ]);
     });
 
@@ -72,14 +78,29 @@ describe("objectValidator", () => {
             name: "toto",
         });
         expect(
-            await UserValidator.check({ name: "toto", email: "pas un email" })
-        ).toEqual(["email must be an email", "email can be absent"]);
+            await UserValidator.check({ name: "toto", email: "not an email" })
+        ).toEqual([
+            {
+                key: "email",
+                message: "value must be an email",
+                value: "not an email",
+            },
+            {
+                key: "email",
+                message: "value can be absent",
+                value: "not an email",
+            },
+        ]);
         expect(await UserValidator.check({ name: "", email: "" })).toEqual([
-            "name must be present",
-            "name must be longer than 3",
+            { key: "name", message: "value must be present", value: "" },
+            { key: "name", message: "value must be longer than 3", value: "" },
         ]);
         expect(await UserValidator.check({ name: "to", email: "" })).toEqual([
-            "name must be longer than 3",
+            {
+                key: "name",
+                message: "value must be longer than 3",
+                value: "to",
+            },
         ]);
     });
 
@@ -106,9 +127,9 @@ describe("objectValidator", () => {
                 email: "toto@gmail.com",
             })
         ).toEqual([
-            "user is not an object",
-            "user.name must be present",
-            "user.name must be longer than 3",
+            { key: "user", message: "value is not an object" },
+            { key: "user.name", message: "value must be present" },
+            { key: "user.name", message: "value must be longer than 3" },
         ]);
     });
 });
