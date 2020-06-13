@@ -1,5 +1,5 @@
-const validateList = require("./validateList");
-const validateObject = require("./validateObject");
+const listValidator = require("./listValidator");
+const objectValidator = require("./objectValidator");
 const Validation = require("./Validation");
 const { validator } = require("./Validator");
 
@@ -16,10 +16,10 @@ const isPresent = validator((value, key) => {
     return Validation.Invalid([`${key} must be present`]);
 });
 
-describe("validateList", () => {
+describe("listValidator", () => {
     it("should allow to apply validation to a list of value", async () => {
         const emailValidator = isPresent.and(isEmail);
-        const res = await validateList(emailValidator).check([
+        const res = await listValidator(emailValidator).check([
             "test@email.com",
             "not an email",
         ]);
@@ -27,20 +27,20 @@ describe("validateList", () => {
     });
 
     it("should allow to apply object validation to a list of value", async () => {
-        const userValidators = validateObject({
+        const userValidators = objectValidator({
             name: isPresent,
             email: isEmail,
         });
-        const res = await validateList(userValidators).check([
+        const res = await listValidator(userValidators).check([
             { name: "toto", email: "test@email.com" },
             { name: "toto", email: "not an email" },
         ]);
         expect(res).toEqual(["[1].email must be an email"]);
     });
 
-    it("should allow to be nest with validate Object", async () => {
-        const validators = validateObject({
-            users: validateList({
+    it("should allow to be nested with validate Object", async () => {
+        const validators = objectValidator({
+            users: listValidator({
                 name: isPresent,
                 email: isEmail,
             }),

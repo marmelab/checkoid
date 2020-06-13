@@ -9,7 +9,7 @@ const isObject = validator((value, key) => {
     return Validation.Invalid([`${key} is not an object`]);
 });
 
-const validateObject = (spec) =>
+const objectValidator = (spec) =>
     isObject.and(
         Validator((obj = {}, parentKey = []) => {
             return Object.keys(spec).reduce((acc, key) => {
@@ -23,4 +23,4 @@ const validateObject = (spec) =>
         })
     );
 
-module.exports = validateObject;
+module.exports = objectValidator;

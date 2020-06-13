@@ -1,4 +1,4 @@
-const validateObject = require("./validateObject");
+const objectValidator = require("./objectValidator");
 const Validation = require("./Validation");
 const { validator } = require("./Validator");
 
@@ -28,14 +28,14 @@ const isEmail = validator((value, key) => {
     return Validation.Invalid([`${key} must be an email`]);
 });
 
-describe("validateObject", () => {
-    it("should allow to validateObject an user object given a simple spec", async () => {
+describe("objectValidator", () => {
+    it("should allow to create a validator for an user object given a simple spec", async () => {
         const userSpec = {
             name: isPresent,
             email: isEmail,
         };
 
-        const UserValidator = validateObject(userSpec);
+        const UserValidator = objectValidator(userSpec);
 
         expect(await UserValidator.check({ name: "toto" })).toEqual([
             "email must be an email",
@@ -53,13 +53,13 @@ describe("validateObject", () => {
         ]);
     });
 
-    it("should allow to validateObject an user object given a spec", async () => {
+    it("should allow to create a validator for an user object given a spec", async () => {
         const userSpec = {
             name: isPresent.and(isLongerThanTree),
             email: isEmail.or(isAbsent),
         };
 
-        const UserValidator = validateObject(userSpec);
+        const UserValidator = objectValidator(userSpec);
 
         expect(await UserValidator.check({ name: "toto" })).toEqual({
             name: "toto",
@@ -83,15 +83,15 @@ describe("validateObject", () => {
         ]);
     });
 
-    it("should allow to nest validateObject", async () => {
+    it("should allow to nest objectValidator", async () => {
         const spec = {
-            user: validateObject({
+            user: objectValidator({
                 name: isPresent.and(isLongerThanTree),
                 email: isEmail.or(isAbsent),
             }),
         };
 
-        const ComplexValidator = validateObject(spec);
+        const ComplexValidator = objectValidator(spec);
 
         expect(
             await ComplexValidator.check({ user: { name: "toto" } })

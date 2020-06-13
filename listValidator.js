@@ -1,7 +1,7 @@
 const Task = require("./Task");
 const { Validator, validator } = require("./Validator");
 const Validation = require("./Validation");
-const validateObject = require("./validateObject");
+const objectValidator = require("./objectValidator");
 
 const IsList = validator((value, key) => {
     if (Array.isArray(value)) {
@@ -10,12 +10,12 @@ const IsList = validator((value, key) => {
     return Validation.Invalid([`${key} must be an array`]);
 });
 
-const validateList = (spec) => {
+const listValidator = (spec) => {
     const validator = spec.run
         ? spec
         : Array.isArray(spec)
-        ? validateList(spec)
-        : validateObject(spec);
+        ? listValidator(spec)
+        : objectValidator(spec);
 
     return IsList.and(
         Validator((values, key = []) =>
@@ -31,4 +31,4 @@ const validateList = (spec) => {
     );
 };
 
-module.exports = validateList;
+module.exports = listValidator;
