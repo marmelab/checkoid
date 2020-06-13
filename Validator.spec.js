@@ -1,9 +1,9 @@
 const { validator } = require("./Validator");
 const Validation = require("./Validation");
 
-const isAbsent = validator((value) => {
+const isOptional = validator((value) => {
     if (!!value) {
-        return Validation.Invalid([`value can be absent`]);
+        return Validation.Invalid([`value is optional`]);
     }
     return Validation.Valid(value);
 });
@@ -29,12 +29,11 @@ describe("Validator", () => {
             return Validation.Invalid([`value must be an email`]);
         });
 
-        const validValidation = await validate.check("some@email.com", "email");
+        const validValidation = await validate.check("some@email.com");
         expect(validValidation).toBe("some@email.com");
 
         const invalidValidation = await validate.check(
-            "I will type whatever I want",
-            "email"
+            "I will type whatever I want"
         );
         expect(invalidValidation).toEqual(["value must be an email"]);
     });
@@ -42,12 +41,10 @@ describe("Validator", () => {
     it("should allow to combine validator with and", async () => {
         const validValidation = await isPresent
             .and(isEmail)
-            .check("some@email.com", "email");
+            .check("some@email.com");
         expect(validValidation).toBe("some@email.com");
 
-        const noValueValidation = await isPresent
-            .and(isEmail)
-            .check("", "email");
+        const noValueValidation = await isPresent.and(isEmail).check("");
         expect(noValueValidation).toEqual([
             "value must be present",
             "value must be an email",
@@ -55,25 +52,25 @@ describe("Validator", () => {
 
         const invalidEmailValidation = await isPresent
             .and(isEmail)
-            .check("whatever", "email");
+            .check("whatever");
         expect(invalidEmailValidation).toEqual(["value must be an email"]);
     });
 
     it("should allow to combine validator with or", async () => {
         const emailValidation = await isEmail
-            .or(isAbsent)
-            .check("some@email.com", "email");
+            .or(isOptional)
+            .check("some@email.com");
         expect(emailValidation).toBe("some@email.com");
 
-        const noValueValidation = await isEmail.or(isAbsent).check("", "email");
+        const noValueValidation = await isEmail.or(isOptional).check("");
         expect(noValueValidation).toBe("");
 
         const invalidEmailValidation = await isEmail
-            .or(isAbsent)
-            .check("whatever", "email");
+            .or(isOptional)
+            .check("whatever");
         expect(invalidEmailValidation).toEqual([
             "value must be an email",
-            "value can be absent",
+            "value is optional",
         ]);
     });
 
@@ -89,7 +86,7 @@ describe("Validator", () => {
             return Validation.Valid(id);
         });
 
-        const validValidation = await isPresentInDb.check("200", "userId");
+        const validValidation = await isPresentInDb.check("200");
         expect(validValidation).toEqual("200");
 
         const invalidValidation = await isPresent
