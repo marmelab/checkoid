@@ -20,11 +20,13 @@ const Task = (fork) => ({
 });
 Task.of = (a) => Task((_, resolve) => resolve(a));
 
-Task.fromFn = (fn) =>
+Task.lift = (fn) => (...args) =>
     Task((reject, resolve) => {
         try {
             // Promise.resolve will convert the function result to a promise if it is not
-            Promise.resolve(fn()).then(resolve).catch(reject);
+            Promise.resolve(fn(...args))
+                .then(resolve)
+                .catch(reject);
         } catch (error) {
             // catch eventual synchronous error
             reject(error);

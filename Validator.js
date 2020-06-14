@@ -11,7 +11,7 @@ const Validator = (run) => ({
             .then(({ x }) => x),
 });
 
-const validator = (fn) => Validator((x) => Task.fromFn(() => fn(x)));
+const validator = (fn) => Validator(Task.lift(fn));
 
 exports.Validator = Validator;
 exports.validator = validator;
