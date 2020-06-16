@@ -50,7 +50,7 @@ const isOptionalEmail = isEmail.or(isEmpty);
 
 await isOptionalEmail.check(''); // undefined
 await isOptionalEmail.check('test@gmail.com'); // undefined
-await isOptionalEmail.check('invalid mail'); // ['value must be an email', 'value is optional']
+await isOptionalEmail.check('invalid mail'); // ['value must be an email', 'value is not empty']
 ```
 
 You can validate object too
