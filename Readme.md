@@ -39,14 +39,14 @@ await isEmailNotFromGMail.check('test@free.ff'); // undefined
 Or with or
 
 ```js
-const isOptional = validator((value) => {
+const isEmpty = validator((value) => {
     if (!!value) {
-        return Validation.Invalid([`value is optional`]);
+        return Validation.Invalid([`value is not empty`]);
     }
     return Validation.Valid(value);
 });
 
-const isOptionalEmail = isEmail.or(isOptional);
+const isOptionalEmail = isEmail.or(isEmpty);
 
 await isOptionalEmail.check(''); // undefined
 await isOptionalEmail.check('test@gmail.com'); // undefined
