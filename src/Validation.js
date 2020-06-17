@@ -21,4 +21,7 @@ const Invalid = (x) => ({
     fold: (onValid, onInvalid) => onInvalid(x),
 });
 
-module.exports = { Valid, Invalid };
+const invalid = (message, value, key) => Invalid([{ message, value, key }]);
+const valid = () => Valid();
+
+module.exports = { Valid, valid, Invalid, invalid };

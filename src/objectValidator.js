@@ -1,5 +1,5 @@
 const Validation = require("./Validation");
-const { Validator, validator } = require("./Validator");
+const { validator, Validator } = require("./Validator");
 const { formatKey, and } = require("./utils");
 
 const isObject = validator((value) => {
@@ -10,23 +10,32 @@ const isObject = validator((value) => {
 });
 
 const objectValidator = (spec) =>
-    Validator((obj) =>
-        Object.keys(spec)
-            .map((key) =>
-                spec[key]
-                    .beforeHook((v) => v && v[key])
-                    .format((message) =>
-                        message.message
-                            ? {
-                                  key: `${key}${formatKey(message.key)}`,
-                                  message: message.message,
-                                  value: message.value,
-                              }
-                            : { key, message, value: obj && obj[key] }
+    Object.keys(spec)
+        .map((key) =>
+            spec[key]
+                .beforeHook((v) => v && v[key])
+                .format((message) =>
+                    message.message
+                        ? {
+                              key: `${key}${formatKey(message.key)}`,
+                              message: message.message,
+                              value: message.value,
+                          }
+                        : { key, message, value: message.value }
+                )
+                .chain((x) =>
+                    Validator.getValue().map((value) =>
+                        x.format((msg) =>
+                            typeof msg.value !== "undefined"
+                                ? msg
+                                : {
+                                      ...msg,
+                                      value: value && value[msg.key],
+                                  }
+                        )
                     )
-            )
-            .reduce(and, isObject)
-            .run(obj)
-    );
+                )
+        )
+        .reduce(and, isObject);
 
 module.exports = objectValidator;
