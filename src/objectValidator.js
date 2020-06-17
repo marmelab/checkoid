@@ -1,6 +1,6 @@
 const Validation = require("./Validation");
 const { validator, Validator } = require("./Validator");
-const { formatKey, and } = require("./utils");
+const { addKeyToMessage, and } = require("./utils");
 
 const isObject = validator((value) => {
     if (typeof value === "object") {
@@ -14,20 +14,7 @@ const objectValidator = (spec) =>
         .map((key) =>
             spec[key]
                 .beforeHook((v) => v && v[key])
-                .format((message, value) =>
-                    message.message
-                        ? {
-                              key: [].concat(key).concat(message.key || []),
-                              message: message.message,
-                              value:
-                                  typeof message.value !== "undefined"
-                                      ? message.value
-                                      : value &&
-                                        value[key] &&
-                                        value[key][message[key]],
-                          }
-                        : { key: [key], message, value: value && value[key] }
-                )
+                .format(addKeyToMessage(key))
         )
         .reduce(and, isObject);
 
