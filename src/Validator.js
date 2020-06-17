@@ -1,23 +1,29 @@
 const Task = require("./Task");
 
-// run is a function that return a Task of a Validation
-const Validator = (run) => ({
+const AsyncValidator = (run) => ({
     run,
-    and: (other) => Validator((x) => run(x).and(other.run(x))),
-    or: (other) => Validator((x) => run(x).or(other.run(x))),
+    isAsync: true,
+    and: (other) =>
+        other.isAsync
+            ? AsyncValidator((x) => run(x).and(other.run(x)))
+            : AsyncValidator((x) => run(x).and(other.toAsync().run(x))),
+    or: (other) =>
+        other.isAsync
+            ? AsyncValidator((x) => run(x).or(other.run(x)))
+            : AsyncValidator((x) => run(x).or(other.toAsync().run(x))),
     // also known as contraMap
-    beforeHook: (fn) => Validator((x) => run(fn(x))),
+    beforeHook: (fn) => AsyncValidator((x) => run(fn(x))),
     format: (fn) =>
-        Validator(run).chain((x) =>
-            Validator.getEntry().map((entry) =>
+        AsyncValidator(run).chain((x) =>
+            AsyncValidator.getEntry().map((entry) =>
                 x.format((message) => fn(message, entry))
             )
         ),
-    map: (fn) => Validator((x) => fn(run(x))),
-    chain: (fn) => Validator((x) => fn(run(x)).run(x)),
+    map: (fn) => AsyncValidator((x) => fn(run(x))),
+    chain: (fn) => AsyncValidator((x) => fn(run(x)).run(x)),
     mapWithEntry: (fn) =>
-        Validator(run)
-            .chain((x) => Validator.getEntry())
+        AsyncValidator(run)
+            .chain((x) => AsyncValidator.getEntry())
             .map((entry) => fn(entry)),
     check: (x) =>
         run(x)
@@ -25,9 +31,46 @@ const Validator = (run) => ({
             .then(({ x }) => x),
 });
 
-Validator.getEntry = () => Validator((x) => x);
+AsyncValidator.getEntry = () => AsyncValidator((x) => x);
 
-const validator = (fn) => Validator(Task.lift(fn));
+const asyncValidator = (fn) => AsyncValidator(Task.lift(fn));
 
-exports.Validator = Validator;
-exports.validator = validator;
+const SyncValidator = (run) => ({
+    run,
+    isAsync: false,
+    and: (other) =>
+        other.isAsync
+            ? SyncValidator(run).toAsync().and(other)
+            : SyncValidator((x) => run(x).and(other.run(x))),
+    or: (other) =>
+        other.isAsync
+            ? SyncValidator(run).toAsync().or(other)
+            : SyncValidator((x) => run(x).or(other.run(x))),
+    // also known as contraMap
+    beforeHook: (fn) => SyncValidator((x) => run(fn(x))),
+    format: (fn) =>
+        SyncValidator(run).chain((x) =>
+            AsyncValidator.getEntry().map((entry) =>
+                x.format((message) => fn(message, entry))
+            )
+        ),
+    map: (fn) => SyncValidator((x) => fn(run(x))),
+    chain: (fn) => SyncValidator((x) => fn(run(x)).run(x)),
+    mapWithEntry: (fn) =>
+        SyncValidator(run)
+            .chain((x) => SyncValidator.getEntry())
+            .map((entry) => fn(entry)),
+    check: (x) => run(x).x,
+    toAsync: () => AsyncValidator(Task.lift(run)),
+});
+
+SyncValidator.getEntry = () => SyncValidator((x) => x);
+
+const validator = SyncValidator;
+
+module.exports = {
+    AsyncValidator,
+    SyncValidator,
+    validator,
+    asyncValidator,
+};
