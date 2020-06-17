@@ -1,27 +1,22 @@
-const Task = require("./Task");
 const { Validator, validator } = require("./Validator");
 const Validation = require("./Validation");
-const objectValidator = require("./objectValidator");
 const { formatKey } = require("./utils");
 
-const listValidator = (spec) => {
-    const validator = spec.run
-        ? spec
-        : Array.isArray(spec)
-        ? listValidator(spec)
-        : objectValidator(spec);
+const isArray = validator((x) => {
+    if (Array.isArray(x)) {
+        return Validation.Valid();
+    }
 
-    return Validator((values) => {
-        if (!Array.isArray(values)) {
-            return Task.of(
-                Validation.Invalid([
-                    { message: "value must be an array", value: values },
-                ])
-            );
-        }
-        return values
+    return Validation.Invalid([
+        { message: "value must be an array", value: x },
+    ]);
+});
+
+const listValidator = (validator) =>
+    Validator((values) =>
+        (Array.isArray(values) ? values : [])
             .map((value, key) =>
-                validator.run(value).map((message) =>
+                Validator(() => validator.run(value)).format((message) =>
                     message.message
                         ? {
                               key: `[${key}]${formatKey(message.key)}`,
@@ -35,11 +30,8 @@ const listValidator = (spec) => {
                           }
                 )
             )
-            .reduce(
-                (acc, task) => acc.and(task),
-                Task.of(Validation.Valid(values))
-            );
-    });
-};
+            .reduce((acc, v) => acc.and(v), isArray)
+            .run(values)
+    );
 
 module.exports = listValidator;

@@ -65,10 +65,12 @@ describe("listValidator", () => {
 
     it("should allow to be nested with validate Object", async () => {
         const validators = objectValidator({
-            users: listValidator({
-                name: isPresent,
-                email: isEmail,
-            }),
+            users: listValidator(
+                objectValidator({
+                    name: isPresent,
+                    email: isEmail,
+                })
+            ),
         });
         const res = await validators.check({
             users: [
