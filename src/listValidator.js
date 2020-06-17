@@ -1,6 +1,6 @@
 const { Validator, validator } = require("./Validator");
 const Validation = require("./Validation");
-const { formatKey } = require("./utils");
+const { formatKey, and } = require("./utils");
 
 const isArray = validator((x) => {
     if (Array.isArray(x)) {
@@ -30,7 +30,7 @@ const listValidator = (validator) =>
                           }
                 )
             )
-            .reduce((acc, v) => acc.and(v), isArray)
+            .reduce(and, isArray)
             .run(values)
     );
 

@@ -1,6 +1,6 @@
 const Validation = require("./Validation");
 const { Validator, validator } = require("./Validator");
-const { formatKey } = require("./utils");
+const { formatKey, and } = require("./utils");
 
 const isObject = validator((value) => {
     if (typeof value === "object") {
@@ -12,21 +12,20 @@ const isObject = validator((value) => {
 const objectValidator = (spec) =>
     Validator((obj) =>
         Object.keys(spec)
-            .reduce((acc, key) => {
-                return acc.and(
-                    spec[key]
-                        .beforeHook((v) => v && v[key])
-                        .format((message) =>
-                            message.message
-                                ? {
-                                      key: `${key}${formatKey(message.key)}`,
-                                      message: message.message,
-                                      value: message.value,
-                                  }
-                                : { key, message, value: obj && obj[key] }
-                        )
-                );
-            }, isObject)
+            .map((key) =>
+                spec[key]
+                    .beforeHook((v) => v && v[key])
+                    .format((message) =>
+                        message.message
+                            ? {
+                                  key: `${key}${formatKey(message.key)}`,
+                                  message: message.message,
+                                  value: message.value,
+                              }
+                            : { key, message, value: obj && obj[key] }
+                    )
+            )
+            .reduce(and, isObject)
             .run(obj)
     );
 
