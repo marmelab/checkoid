@@ -15,18 +15,26 @@ const isArray = validator((x) => {
 const listValidator = (validator) =>
     Validator((values) =>
         (Array.isArray(values) ? values : [])
-            .map((value, key) =>
-                Validator(() => validator.run(value)).format((message) =>
+            .map((item, key) =>
+                Validator(() => validator.run(item)).format((message, value) =>
                     message.message
                         ? {
                               key: `[${key}]${formatKey(message.key)}`,
                               message: message.message,
-                              value: message.value,
+                              value:
+                                  typeof message.value !== "undefined"
+                                      ? message.value
+                                      : value &&
+                                        value[key] &&
+                                        value[key][message[key]],
                           }
                         : {
                               key: `[${key}]`,
                               message,
-                              value,
+                              value:
+                                  typeof message.value !== "undefined"
+                                      ? message.value
+                                      : value[key],
                           }
                 )
             )

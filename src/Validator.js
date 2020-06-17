@@ -7,7 +7,12 @@ const Validator = (run) => ({
     or: (other) => Validator((x) => run(x).or(other.run(x))),
     // also known as contraMap
     beforeHook: (fn) => Validator((x) => run(fn(x))),
-    format: (fn) => Validator((x) => run(x).format(fn)),
+    format: (fn) =>
+        Validator(run).chain((x) =>
+            Validator.getValue().map((value) =>
+                x.format((message) => fn(message, value))
+            )
+        ),
     map: (fn) => Validator((x) => fn(run(x))),
     chain: (fn) => Validator((x) => fn(run(x)).run(x)),
     check: (x) =>

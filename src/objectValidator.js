@@ -14,26 +14,19 @@ const objectValidator = (spec) =>
         .map((key) =>
             spec[key]
                 .beforeHook((v) => v && v[key])
-                .format((message) =>
+                .format((message, value) =>
                     message.message
                         ? {
                               key: `${key}${formatKey(message.key)}`,
                               message: message.message,
-                              value: message.value,
+                              value:
+                                  typeof message.value !== "undefined"
+                                      ? message.value
+                                      : value &&
+                                        value[key] &&
+                                        value[key][message[key]],
                           }
-                        : { key, message, value: message.value }
-                )
-                .chain((x) =>
-                    Validator.getValue().map((value) =>
-                        x.format((msg) =>
-                            typeof msg.value !== "undefined"
-                                ? msg
-                                : {
-                                      ...msg,
-                                      value: value && value[msg.key],
-                                  }
-                        )
-                    )
+                        : { key, message, value: value && value[key] }
                 )
         )
         .reduce(and, isObject);
