@@ -7,7 +7,7 @@ exports.formatKey = (key) => {
 
 exports.and = (validator1, validator2) => validator1.and(validator2);
 
-exports.addKeyToMessage = (key) => (message, value) =>
+exports.addKeyToMessage = (key) => (message, entry) =>
     message.message
         ? {
               key: [].concat(key).concat(message.key || []),
@@ -15,6 +15,6 @@ exports.addKeyToMessage = (key) => (message, value) =>
               value:
                   typeof message.value !== "undefined"
                       ? message.value
-                      : value && value[key] && value[key][message[key]],
+                      : entry && entry[key] && entry[key][message[key]],
           }
-        : { key: [key], message, value: value && value[key] };
+        : { key: [key], message, value: entry && entry[key] };

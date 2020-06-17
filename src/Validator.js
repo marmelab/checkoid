@@ -9,8 +9,8 @@ const Validator = (run) => ({
     beforeHook: (fn) => Validator((x) => run(fn(x))),
     format: (fn) =>
         Validator(run).chain((x) =>
-            Validator.getValue().map((value) =>
-                x.format((message) => fn(message, value))
+            Validator.getEntry().map((entry) =>
+                x.format((message) => fn(message, entry))
             )
         ),
     map: (fn) => Validator((x) => fn(run(x))),
@@ -21,7 +21,7 @@ const Validator = (run) => ({
             .then(({ x }) => x),
 });
 
-Validator.getValue = () => Validator((x) => x);
+Validator.getEntry = () => Validator((x) => x);
 
 const validator = (fn) => Validator(Task.lift(fn));
 
