@@ -1,5 +1,5 @@
 const Validation = require("./Validation");
-const { validator, Validator } = require("./Validator");
+const { validator } = require("./Validator");
 const { addKeyToMessage, and } = require("./utils");
 
 const isObject = validator((value) => {

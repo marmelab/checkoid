@@ -63,6 +63,27 @@ describe("listValidator", () => {
         ]);
     });
 
+    it("should allow to apply list validation to a list of list", async () => {
+        const emailValidator = isPresent.and(isEmail);
+        const emailListValidators = listValidator(emailValidator);
+        const res = await listValidator(emailListValidators).check([
+            ["test@email.com", "not an email"],
+            ["not an email"],
+        ]);
+        expect(res).toEqual([
+            {
+                key: [0, 1],
+                message: "value must be an email",
+                value: "not an email",
+            },
+            {
+                key: [1, 0],
+                message: "value must be an email",
+                value: "not an email",
+            },
+        ]);
+    });
+
     it("should allow to be nested with validate Object", async () => {
         const validators = objectValidator({
             users: listValidator(

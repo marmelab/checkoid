@@ -15,6 +15,10 @@ const Validator = (run) => ({
         ),
     map: (fn) => Validator((x) => fn(run(x))),
     chain: (fn) => Validator((x) => fn(run(x)).run(x)),
+    mapWithEntry: (fn) =>
+        Validator(run)
+            .chain((x) => Validator.getEntry())
+            .map((entry) => fn(entry)),
     check: (x) =>
         run(x)
             .toPromise()
