@@ -1,7 +1,7 @@
 const listValidator = require("./listValidator");
 const objectValidator = require("./objectValidator");
 const Validation = require("./Validation");
-const { validator } = require("./Validator");
+const { validator, asyncValidator } = require("./Validator");
 
 const isEmail = validator((value) => {
     if (/@/.test(value)) {
@@ -16,6 +16,17 @@ const isPresent = validator((value) => {
     return Validation.Invalid([`value must be present`]);
 });
 
+const isPresentInDb = asyncValidator(async (id) => {
+    await new Promise((resolve) => {
+        setTimeout(resolve, 1);
+    });
+    if (!id || id === 404) {
+        return Validation.Invalid([`user does not exists`]);
+    }
+
+    return Validation.Valid(id);
+});
+
 describe("listValidator", () => {
     it("should allow to apply validation to a list of value", () => {
         const emailValidator = isPresent.and(isEmail);
@@ -28,6 +39,20 @@ describe("listValidator", () => {
                 key: [1],
                 message: "value must be an email",
                 value: "not an email",
+            },
+        ]);
+    });
+
+    it("should allow to apply asyncValidation to a list of value", async () => {
+        const areIdsPresentIndDb = listValidator(isPresentInDb);
+        expect(areIdsPresentIndDb.isAsync).toBe(true);
+        const res = areIdsPresentIndDb.check([201, 404, 200]);
+        expect(res.then).toBeDefined();
+        expect(await res).toEqual([
+            {
+                key: [1],
+                message: "user does not exists",
+                value: 404,
             },
         ]);
     });

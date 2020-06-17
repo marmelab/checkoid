@@ -1,6 +1,6 @@
 const objectValidator = require("./objectValidator");
 const Validation = require("./Validation");
-const { validator } = require("./Validator");
+const { validator, asyncValidator } = require("./Validator");
 
 const isPresent = validator((value) => {
     if (!!value) {
@@ -26,6 +26,17 @@ const isEmail = validator((value) => {
         return Validation.Valid(value);
     }
     return Validation.Invalid([`value must be an email`]);
+});
+
+const isPresentInDb = asyncValidator(async (id) => {
+    await new Promise((resolve) => {
+        setTimeout(resolve, 1);
+    });
+    if (!id || id === "404") {
+        return Validation.Invalid([`user does not exists`]);
+    }
+
+    return Validation.Valid(id);
 });
 
 describe("objectValidator", () => {
@@ -69,6 +80,35 @@ describe("objectValidator", () => {
                 key: ["email"],
                 message: "value must be an email",
                 value: undefined,
+            },
+        ]);
+    });
+
+    it("should return an async validator if at least one validator in spec is async", async () => {
+        const userSpec = {
+            id: isPresentInDb,
+            name: isPresent,
+            email: isEmail,
+        };
+
+        const UserValidator = objectValidator(userSpec);
+
+        expect(UserValidator.isAsync).toBe(true);
+
+        const promise = UserValidator.check({
+            id: null,
+            email: "not an email",
+            name: "toto",
+        });
+
+        expect(promise.then).toBeDefined();
+
+        expect(await promise).toEqual([
+            { key: ["id"], message: "user does not exists", value: null },
+            {
+                key: ["email"],
+                message: "value must be an email",
+                value: "not an email",
             },
         ]);
     });

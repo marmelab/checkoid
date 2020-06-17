@@ -13,14 +13,14 @@ const isArray = validator((x) => {
 });
 
 const listValidator = (validator) =>
-    validator.mapWithEntry((values) =>
+    validator.chainWithEntry((values) =>
         (Array.isArray(values) ? values : [])
             .map((item, key) =>
                 validator
-                    .run(item)
+                    .beforeHook(() => item)
                     .format((message) => addKeyToMessage(key)(message, values))
             )
-            .reduce(and, isArray.run(values))
+            .reduce(and, isArray)
     );
 
 module.exports = listValidator;

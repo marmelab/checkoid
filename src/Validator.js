@@ -21,10 +21,10 @@ const AsyncValidator = (run) => ({
         ),
     map: (fn) => AsyncValidator((x) => fn(run(x))),
     chain: (fn) => AsyncValidator((x) => fn(run(x)).run(x)),
-    mapWithEntry: (fn) =>
+    chainWithEntry: (fn) =>
         AsyncValidator(run)
             .chain((x) => AsyncValidator.getEntry())
-            .map((entry) => fn(entry)),
+            .chain((entry) => fn(entry)),
     check: (x) =>
         run(x)
             .toPromise()
@@ -56,10 +56,10 @@ const SyncValidator = (run) => ({
         ),
     map: (fn) => SyncValidator((x) => fn(run(x))),
     chain: (fn) => SyncValidator((x) => fn(run(x)).run(x)),
-    mapWithEntry: (fn) =>
+    chainWithEntry: (fn) =>
         SyncValidator(run)
             .chain((x) => SyncValidator.getEntry())
-            .map((entry) => fn(entry)),
+            .chain((entry) => fn(entry)),
     check: (x) => run(x).x,
     toAsync: () => AsyncValidator(Task.lift(run)),
 });
