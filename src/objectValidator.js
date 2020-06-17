@@ -1,6 +1,5 @@
 const Validation = require("./Validation");
 const { Validator, validator } = require("./Validator");
-const Task = require("./Task");
 const { formatKey } = require("./utils");
 
 const isObject = validator((value) => {
@@ -11,22 +10,24 @@ const isObject = validator((value) => {
 });
 
 const objectValidator = (spec) =>
-    isObject.and(
-        Validator((obj = {}) => {
-            return Object.keys(spec).reduce((acc, key) => {
+    Validator((obj) =>
+        Object.keys(spec)
+            .reduce((acc, key) => {
                 return acc.and(
-                    spec[key].run(obj[key]).map((message) =>
-                        message.message
-                            ? {
-                                  key: `${key}${formatKey(message.key)}`,
-                                  message: message.message,
-                                  value: message.value,
-                              }
-                            : { key, message, value: obj[key] }
-                    )
+                    spec[key]
+                        .beforeHook((v) => v && v[key])
+                        .format((message) =>
+                            message.message
+                                ? {
+                                      key: `${key}${formatKey(message.key)}`,
+                                      message: message.message,
+                                      value: message.value,
+                                  }
+                                : { key, message, value: obj && obj[key] }
+                        )
                 );
-            }, Task.of(Validation.Valid(obj)));
-        })
+            }, isObject)
+            .run(obj)
     );
 
 module.exports = objectValidator;
