@@ -19,7 +19,7 @@ const listValidator = (validator) =>
                 Validator(() => validator.run(item)).format((message, value) =>
                     message.message
                         ? {
-                              key: `[${key}]${formatKey(message.key)}`,
+                              key: [].concat(key).concat(message.key || []),
                               message: message.message,
                               value:
                                   typeof message.value !== "undefined"
@@ -29,12 +29,9 @@ const listValidator = (validator) =>
                                         value[key][message[key]],
                           }
                         : {
-                              key: `[${key}]`,
+                              key: [key],
                               message,
-                              value:
-                                  typeof message.value !== "undefined"
-                                      ? message.value
-                                      : value[key],
+                              value: value && value[key],
                           }
                 )
             )

@@ -38,7 +38,7 @@ describe("objectValidator", () => {
         const UserValidator = objectValidator(userSpec);
 
         expect(await UserValidator.check({ name: "toto" })).toEqual([
-            { key: "email", message: "value must be an email" },
+            { key: ["email"], message: "value must be an email" },
         ]);
         expect(
             await UserValidator.check({ name: "toto", email: "toto@gmail.com" })
@@ -48,21 +48,25 @@ describe("objectValidator", () => {
             await UserValidator.check({ name: "toto", email: "not an email" })
         ).toEqual([
             {
-                key: "email",
+                key: ["email"],
                 message: "value must be an email",
                 value: "not an email",
             },
         ]);
         expect(await UserValidator.check({ name: "", email: "" })).toEqual([
-            { key: "name", message: "value must be present", value: "" },
-            { key: "email", message: "value must be an email", value: "" },
+            { key: ["name"], message: "value must be present", value: "" },
+            { key: ["email"], message: "value must be an email", value: "" },
         ]);
 
         expect(await UserValidator.check("toto")).toEqual([
             { message: "value is not an object", value: "toto" },
-            { key: "name", message: "value must be present", value: undefined },
             {
-                key: "email",
+                key: ["name"],
+                message: "value must be present",
+                value: undefined,
+            },
+            {
+                key: ["email"],
                 message: "value must be an email",
                 value: undefined,
             },
@@ -91,23 +95,27 @@ describe("objectValidator", () => {
             await UserValidator.check({ name: "toto", email: "not an email" })
         ).toEqual([
             {
-                key: "email",
+                key: ["email"],
                 message: "value must be an email",
                 value: "not an email",
             },
             {
-                key: "email",
+                key: ["email"],
                 message: "value can be absent",
                 value: "not an email",
             },
         ]);
         expect(await UserValidator.check({ name: "", email: "" })).toEqual([
-            { key: "name", message: "value must be present", value: "" },
-            { key: "name", message: "value must be longer than 3", value: "" },
+            { key: ["name"], message: "value must be present", value: "" },
+            {
+                key: ["name"],
+                message: "value must be longer than 3",
+                value: "",
+            },
         ]);
         expect(await UserValidator.check({ name: "to", email: "" })).toEqual([
             {
-                key: "name",
+                key: ["name"],
                 message: "value must be longer than 3",
                 value: "to",
             },
@@ -137,9 +145,9 @@ describe("objectValidator", () => {
                 email: "toto@gmail.com",
             })
         ).toEqual([
-            { key: "user", message: "value is not an object" },
-            { key: "user.name", message: "value must be present" },
-            { key: "user.name", message: "value must be longer than 3" },
+            { key: ["user"], message: "value is not an object" },
+            { key: ["user", "name"], message: "value must be present" },
+            { key: ["user", "name"], message: "value must be longer than 3" },
         ]);
     });
 });

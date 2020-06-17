@@ -17,7 +17,7 @@ const objectValidator = (spec) =>
                 .format((message, value) =>
                     message.message
                         ? {
-                              key: `${key}${formatKey(message.key)}`,
+                              key: [].concat(key).concat(message.key || []),
                               message: message.message,
                               value:
                                   typeof message.value !== "undefined"
@@ -26,7 +26,7 @@ const objectValidator = (spec) =>
                                         value[key] &&
                                         value[key][message[key]],
                           }
-                        : { key, message, value: value && value[key] }
+                        : { key: [key], message, value: value && value[key] }
                 )
         )
         .reduce(and, isObject);

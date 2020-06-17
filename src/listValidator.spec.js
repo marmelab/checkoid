@@ -25,7 +25,7 @@ describe("listValidator", () => {
         ]);
         expect(res).toEqual([
             {
-                key: "[1]",
+                key: [1],
                 message: "value must be an email",
                 value: "not an email",
             },
@@ -56,7 +56,7 @@ describe("listValidator", () => {
         ]);
         expect(res).toEqual([
             {
-                key: "[1].email",
+                key: [1, "email"],
                 message: "value must be an email",
                 value: "not an email",
             },
@@ -81,27 +81,27 @@ describe("listValidator", () => {
         });
         expect(res).toEqual([
             {
-                key: "users[0]",
+                key: ["users", 0],
                 message: "value is not an object",
                 value: "toto",
             },
             {
-                key: "users[0].name",
+                key: ["users", 0, "name"],
                 message: "value must be present",
                 value: undefined,
             },
             {
-                key: "users[0].email",
+                key: ["users", 0, "email"],
                 message: "value must be an email",
                 value: undefined,
             },
             {
-                key: "users[1].name",
+                key: ["users", 1, "name"],
                 message: "value must be present",
                 value: "",
             },
             {
-                key: "users[2].email",
+                key: ["users", 2, "email"],
                 message: "value must be an email",
                 value: "not an email",
             },
@@ -113,7 +113,7 @@ describe("listValidator", () => {
             })
         ).toEqual([
             {
-                key: "users",
+                key: ["users"],
                 message: "value must be an array",
                 value: "A list of user :P",
             },
