@@ -103,16 +103,12 @@ describe("Validator", () => {
         it("should return a Validator.Async when concatenated with a Validator.sync", async () => {
             const andValidator = isPresentInDb.and(isPresent);
 
-            expect(andValidator.isAsync).toBe(true);
-
             const andPromise = andValidator.check("404");
 
             expect(andPromise.then).toBeDefined();
             expect(await andPromise).toEqual(["user does not exists"]);
 
             const orValidator = isPresentInDb.or(isEmpty);
-
-            expect(orValidator.isAsync).toBe(true);
 
             const orPromise = orValidator.check("404");
 
@@ -126,16 +122,12 @@ describe("Validator", () => {
         it("should return a Validator.Async when concatenated to a Validator.sync", async () => {
             const andValidator = isPresent.and(isPresentInDb);
 
-            expect(andValidator.isAsync).toBe(true);
-
             const andPromise = andValidator.check("404");
 
             expect(andPromise.then).toBeDefined();
             expect(await andPromise).toEqual(["user does not exists"]);
 
             const orValidator = isEmpty.or(isPresentInDb);
-
-            expect(orValidator.isAsync).toBe(true);
 
             const orPromise = orValidator.check("404");
 

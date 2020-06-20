@@ -93,8 +93,6 @@ describe("objectValidator", () => {
 
         const UserValidator = objectValidator(userSpec);
 
-        expect(UserValidator.isAsync).toBe(true);
-
         const promise = UserValidator.check({
             id: null,
             email: "not an email",

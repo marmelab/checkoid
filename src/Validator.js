@@ -3,14 +3,8 @@ const Task = require("./Task");
 const AsyncValidator = (run) => ({
     run,
     isAsync: true,
-    and: (other) =>
-        other.isAsync
-            ? AsyncValidator((x) => run(x).and(other.run(x)))
-            : AsyncValidator((x) => run(x).and(other.toAsync().run(x))),
-    or: (other) =>
-        other.isAsync
-            ? AsyncValidator((x) => run(x).or(other.run(x)))
-            : AsyncValidator((x) => run(x).or(other.toAsync().run(x))),
+    and: (other) => AsyncValidator((x) => run(x).and(other.run(x))),
+    or: (other) => AsyncValidator((x) => run(x).or(other.run(x))),
     // also known as contraMap
     beforeHook: (fn) => AsyncValidator((x) => run(fn(x))),
     format: (fn) =>
@@ -21,10 +15,14 @@ const AsyncValidator = (run) => ({
         ),
     map: (fn) => AsyncValidator((x) => fn(run(x))),
     chain: (fn) => AsyncValidator((x) => fn(run(x)).run(x)),
-    check: (x) =>
-        run(x)
-            .toPromise()
-            .then(({ x }) => x),
+    check: (x) => {
+        const res = run(x);
+
+        if (res.toPromise) {
+            return res.toPromise().then(({ x }) => x);
+        }
+        return res.x;
+    },
 });
 
 AsyncValidator.getEntry = () => AsyncValidator((x) => x);
@@ -34,14 +32,8 @@ const asyncValidator = (fn) => AsyncValidator(Task.lift(fn));
 const SyncValidator = (run) => ({
     run,
     isAsync: false,
-    and: (other) =>
-        other.isAsync
-            ? SyncValidator(run).toAsync().and(other)
-            : SyncValidator((x) => run(x).and(other.run(x))),
-    or: (other) =>
-        other.isAsync
-            ? SyncValidator(run).toAsync().or(other)
-            : SyncValidator((x) => run(x).or(other.run(x))),
+    and: (other) => SyncValidator((x) => run(x).and(other.run(x))),
+    or: (other) => SyncValidator((x) => run(x).or(other.run(x))),
     // also known as contraMap
     beforeHook: (fn) => SyncValidator((x) => run(fn(x))),
     format: (fn) =>
@@ -52,8 +44,14 @@ const SyncValidator = (run) => ({
         ),
     map: (fn) => SyncValidator((x) => fn(run(x))),
     chain: (fn) => SyncValidator((x) => fn(run(x)).run(x)),
-    check: (x) => run(x).x,
-    toAsync: () => AsyncValidator(Task.lift(run)),
+    check: (x) => {
+        const res = run(x);
+
+        if (res.toPromise) {
+            return res.toPromise().then(({ x }) => x);
+        }
+        return res.x;
+    },
 });
 
 SyncValidator.getEntry = () => SyncValidator((x) => x);

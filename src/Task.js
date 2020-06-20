@@ -2,13 +2,17 @@ const Task = (fork) => ({
     and: (other) =>
         Task((reject, resolve) =>
             fork(reject, (result1) => {
-                other.fork(reject, (result2) => resolve(result1.and(result2)));
+                (other.fork ? other : Task.of(other)).fork(reject, (result2) =>
+                    resolve(result1.and(result2))
+                );
             })
         ),
     or: (other) =>
         Task((reject, resolve) =>
             fork(reject, (result1) => {
-                other.fork(reject, (result2) => resolve(result1.or(result2)));
+                (other.fork ? other : Task.of(other)).fork(reject, (result2) =>
+                    resolve(result1.or(result2))
+                );
             })
         ),
     format: (fn) =>
