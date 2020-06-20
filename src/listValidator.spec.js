@@ -45,7 +45,6 @@ describe("listValidator", () => {
 
     it("should allow to apply asyncValidation to a list of value", async () => {
         const areIdsPresentIndDb = listValidator(isPresentInDb);
-        expect(areIdsPresentIndDb.isAsync).toBe(true);
         const res = areIdsPresentIndDb.check([201, 404, 200]);
         expect(res.then).toBeDefined();
         expect(await res).toEqual([

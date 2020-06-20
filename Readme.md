@@ -139,4 +139,3 @@ await doesUserIdExists.check('goodId'); // undefined
 
 asyncValidators can be combined exactly like syncValidator, they can even be combined with syncValidator. 
 Simply as soon an asyncValidator get combined with other syncValidator, the resultant validator will automatically become async.
-To tell if a validator is async, you can use its isAsync props.

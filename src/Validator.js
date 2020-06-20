@@ -2,7 +2,6 @@ const { Async } = require("./Validation");
 
 const Validator = (run) => ({
     run,
-    isAsync: true,
     and: (other) => Validator((x) => run(x).and(other.run(x))),
     or: (other) => Validator((x) => run(x).or(other.run(x))),
     // also known as contraMap
