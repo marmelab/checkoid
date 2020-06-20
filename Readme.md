@@ -63,7 +63,7 @@ const isGreaterThan = length => validator(value => {
         return Validation.Invalid([`value must be at least ${length} characters long`]);
     }
 
-    return Validation.valid();
+    return Validation.Valid();
 })
 
 // objectValidator takes an object of other validator and return a validator

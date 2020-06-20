@@ -25,7 +25,7 @@ describe("listValidator", () => {
         ]);
         expect(res).toEqual([
             {
-                key: "[1]",
+                key: [1],
                 message: "value must be an email",
                 value: "not an email",
             },
@@ -56,7 +56,28 @@ describe("listValidator", () => {
         ]);
         expect(res).toEqual([
             {
-                key: "[1].email",
+                key: [1, "email"],
+                message: "value must be an email",
+                value: "not an email",
+            },
+        ]);
+    });
+
+    it("should allow to apply list validation to a list of list", async () => {
+        const emailValidator = isPresent.and(isEmail);
+        const emailListValidators = listValidator(emailValidator);
+        const res = await listValidator(emailListValidators).check([
+            ["test@email.com", "not an email"],
+            ["not an email"],
+        ]);
+        expect(res).toEqual([
+            {
+                key: [0, 1],
+                message: "value must be an email",
+                value: "not an email",
+            },
+            {
+                key: [1, 0],
                 message: "value must be an email",
                 value: "not an email",
             },
@@ -65,10 +86,12 @@ describe("listValidator", () => {
 
     it("should allow to be nested with validate Object", async () => {
         const validators = objectValidator({
-            users: listValidator({
-                name: isPresent,
-                email: isEmail,
-            }),
+            users: listValidator(
+                objectValidator({
+                    name: isPresent,
+                    email: isEmail,
+                })
+            ),
         });
         const res = await validators.check({
             users: [
@@ -79,27 +102,27 @@ describe("listValidator", () => {
         });
         expect(res).toEqual([
             {
-                key: "users[0]",
+                key: ["users", 0],
                 message: "value is not an object",
                 value: "toto",
             },
             {
-                key: "users[0].name",
+                key: ["users", 0, "name"],
                 message: "value must be present",
                 value: undefined,
             },
             {
-                key: "users[0].email",
+                key: ["users", 0, "email"],
                 message: "value must be an email",
                 value: undefined,
             },
             {
-                key: "users[1].name",
+                key: ["users", 1, "name"],
                 message: "value must be present",
                 value: "",
             },
             {
-                key: "users[2].email",
+                key: ["users", 2, "email"],
                 message: "value must be an email",
                 value: "not an email",
             },
@@ -111,7 +134,7 @@ describe("listValidator", () => {
             })
         ).toEqual([
             {
-                key: "users",
+                key: ["users"],
                 message: "value must be an array",
                 value: "A list of user :P",
             },

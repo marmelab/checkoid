@@ -1,45 +1,26 @@
-const Task = require("./Task");
-const { Validator, validator } = require("./Validator");
+const { validator } = require("./Validator");
 const Validation = require("./Validation");
-const objectValidator = require("./objectValidator");
-const { formatKey } = require("./utils");
+const { addKeyToMessage, and } = require("./utils");
 
-const listValidator = (spec) => {
-    const validator = spec.run
-        ? spec
-        : Array.isArray(spec)
-        ? listValidator(spec)
-        : objectValidator(spec);
+const isArray = validator((x) => {
+    if (Array.isArray(x)) {
+        return Validation.Valid();
+    }
 
-    return Validator((values) => {
-        if (!Array.isArray(values)) {
-            return Task.of(
-                Validation.Invalid([
-                    { message: "value must be an array", value: values },
-                ])
-            );
-        }
-        return values
-            .map((value, key) =>
-                validator.run(value).map((message) =>
-                    message.message
-                        ? {
-                              key: `[${key}]${formatKey(message.key)}`,
-                              message: message.message,
-                              value: message.value,
-                          }
-                        : {
-                              key: `[${key}]`,
-                              message,
-                              value,
-                          }
-                )
+    return Validation.Invalid([
+        { message: "value must be an array", value: x },
+    ]);
+});
+
+const listValidator = (validator) =>
+    validator.mapWithEntry((values) =>
+        (Array.isArray(values) ? values : [])
+            .map((item, key) =>
+                validator
+                    .run(item)
+                    .format((message) => addKeyToMessage(key)(message, values))
             )
-            .reduce(
-                (acc, task) => acc.and(task),
-                Task.of(Validation.Valid(values))
-            );
-    });
-};
+            .reduce(and, isArray.run(values))
+    );
 
 module.exports = listValidator;

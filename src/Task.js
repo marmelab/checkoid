@@ -11,9 +11,9 @@ const Task = (fork) => ({
                 other.fork(reject, (result2) => resolve(result1.or(result2)));
             })
         ),
-    map: (fn) =>
+    format: (fn) =>
         Task((reject, resolve) =>
-            fork(reject, (result) => resolve(result.map(fn)))
+            fork(reject, (result) => resolve(result.format(fn)))
         ),
     fork,
     toPromise: () => new Promise((resolve, reject) => fork(reject, resolve)),
