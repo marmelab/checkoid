@@ -18,6 +18,7 @@ const Valid = (x) => ({
     }, // no matter the other we keep the valid value
     format: (fn) => Valid(x),
     fold: (onValid, onInvalid) => onValid(x),
+    getResult: () => x,
 });
 
 exports.Valid = Valid;
@@ -41,6 +42,7 @@ const Invalid = (x) => ({
     },
     format: (fn) => Invalid(x.map(fn)), // allows to apply function to invalid message
     fold: (onValid, onInvalid) => onInvalid(x),
+    getResult: () => x,
 });
 
 // Async validation that will resolve to a Valid or Invalid one
@@ -67,6 +69,10 @@ const Async = (fork) => ({
         ),
     fork,
     toPromise: () => new Promise((resolve, reject) => fork(reject, resolve)),
+    getResult: () =>
+        new Promise((resolve, reject) =>
+            fork(reject, resolve)
+        ).then((validation) => validation.getResult()),
 });
 Async.of = (a) => Async((_, resolve) => resolve(a));
 Async.valid = (a) => Async((_, resolve) => resolve(Valid(a)));
