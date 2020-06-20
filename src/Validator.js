@@ -1,4 +1,4 @@
-const Task = require("./Task");
+const { Async } = require("./Validation");
 
 const AsyncValidator = (run) => ({
     run,
@@ -27,7 +27,7 @@ const AsyncValidator = (run) => ({
 
 AsyncValidator.getEntry = () => AsyncValidator((x) => x);
 
-const asyncValidator = (fn) => AsyncValidator(Task.lift(fn));
+const asyncValidator = (fn) => AsyncValidator(Async.lift(fn));
 
 const SyncValidator = (run) => ({
     run,
