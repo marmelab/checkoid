@@ -78,6 +78,7 @@ Async.of = (a) => Async((_, resolve) => resolve(a));
 Async.valid = (a) => Async((_, resolve) => resolve(Valid(a)));
 Async.invalid = (a) => Async((_, resolve) => resolve(Invalid(a)));
 
+// Takes a function and wrap its result in an Async data type
 Async.lift = (fn) => (...args) =>
     Async((reject, resolve) => {
         try {
