@@ -1,6 +1,6 @@
 const objectValidator = require("./objectValidator");
 const Validation = require("./Validation");
-const { validator } = require("./Validator");
+const { validator, asyncValidator } = require("./Validator");
 
 const isPresent = validator((value) => {
     if (!!value) {
@@ -28,8 +28,19 @@ const isEmail = validator((value) => {
     return Validation.Invalid([`value must be an email`]);
 });
 
+const isPresentInDb = asyncValidator(async (id) => {
+    await new Promise((resolve) => {
+        setTimeout(resolve, 1);
+    });
+    if (!id || id === "404") {
+        return Validation.Invalid([`user does not exists`]);
+    }
+
+    return Validation.Valid(id);
+});
+
 describe("objectValidator", () => {
-    it("should allow to create a validator for an user object given a simple spec", async () => {
+    it("should allow to create a validator for an user object given a simple spec", () => {
         const userSpec = {
             name: isPresent,
             email: isEmail,
@@ -37,15 +48,15 @@ describe("objectValidator", () => {
 
         const UserValidator = objectValidator(userSpec);
 
-        expect(await UserValidator.check({ name: "toto" })).toEqual([
+        expect(UserValidator.check({ name: "toto" })).toEqual([
             { key: ["email"], message: "value must be an email" },
         ]);
         expect(
-            await UserValidator.check({ name: "toto", email: "toto@gmail.com" })
+            UserValidator.check({ name: "toto", email: "toto@gmail.com" })
         ).toEqual({ name: "toto", email: "toto@gmail.com" });
 
         expect(
-            await UserValidator.check({ name: "toto", email: "not an email" })
+            UserValidator.check({ name: "toto", email: "not an email" })
         ).toEqual([
             {
                 key: ["email"],
@@ -53,12 +64,12 @@ describe("objectValidator", () => {
                 value: "not an email",
             },
         ]);
-        expect(await UserValidator.check({ name: "", email: "" })).toEqual([
+        expect(UserValidator.check({ name: "", email: "" })).toEqual([
             { key: ["name"], message: "value must be present", value: "" },
             { key: ["email"], message: "value must be an email", value: "" },
         ]);
 
-        expect(await UserValidator.check("toto")).toEqual([
+        expect(UserValidator.check("toto")).toEqual([
             { message: "value is not an object", value: "toto" },
             {
                 key: ["name"],
@@ -73,7 +84,34 @@ describe("objectValidator", () => {
         ]);
     });
 
-    it("should allow to create a validator for an user object given a spec", async () => {
+    it("should return an async validator if at least one validator in spec is async", async () => {
+        const userSpec = {
+            id: isPresentInDb,
+            name: isPresent,
+            email: isEmail,
+        };
+
+        const UserValidator = objectValidator(userSpec);
+
+        const promise = UserValidator.check({
+            id: null,
+            email: "not an email",
+            name: "toto",
+        });
+
+        expect(promise.then).toBeDefined();
+
+        expect(await promise).toEqual([
+            { key: ["id"], message: "user does not exists", value: null },
+            {
+                key: ["email"],
+                message: "value must be an email",
+                value: "not an email",
+            },
+        ]);
+    });
+
+    it("should allow to create a validator for an user object given a spec", () => {
         const userSpec = {
             name: isPresent.and(isLongerThanTree),
             email: isEmail.or(isAbsent),
@@ -81,18 +119,18 @@ describe("objectValidator", () => {
 
         const UserValidator = objectValidator(userSpec);
 
-        expect(await UserValidator.check({ name: "toto" })).toEqual({
+        expect(UserValidator.check({ name: "toto" })).toEqual({
             name: "toto",
         });
         expect(
-            await UserValidator.check({ name: "toto", email: "toto@gmail.com" })
+            UserValidator.check({ name: "toto", email: "toto@gmail.com" })
         ).toEqual({ name: "toto", email: "toto@gmail.com" });
 
-        expect(await UserValidator.check({ name: "toto" })).toEqual({
+        expect(UserValidator.check({ name: "toto" })).toEqual({
             name: "toto",
         });
         expect(
-            await UserValidator.check({ name: "toto", email: "not an email" })
+            UserValidator.check({ name: "toto", email: "not an email" })
         ).toEqual([
             {
                 key: ["email"],
@@ -105,7 +143,7 @@ describe("objectValidator", () => {
                 value: "not an email",
             },
         ]);
-        expect(await UserValidator.check({ name: "", email: "" })).toEqual([
+        expect(UserValidator.check({ name: "", email: "" })).toEqual([
             { key: ["name"], message: "value must be present", value: "" },
             {
                 key: ["name"],
@@ -113,7 +151,7 @@ describe("objectValidator", () => {
                 value: "",
             },
         ]);
-        expect(await UserValidator.check({ name: "to", email: "" })).toEqual([
+        expect(UserValidator.check({ name: "to", email: "" })).toEqual([
             {
                 key: ["name"],
                 message: "value must be longer than 3",
@@ -122,7 +160,7 @@ describe("objectValidator", () => {
         ]);
     });
 
-    it("should allow to nest objectValidator", async () => {
+    it("should allow to nest objectValidator", () => {
         const spec = {
             user: objectValidator({
                 name: isPresent.and(isLongerThanTree),
@@ -132,15 +170,13 @@ describe("objectValidator", () => {
 
         const ComplexValidator = objectValidator(spec);
 
-        expect(
-            await ComplexValidator.check({ user: { name: "toto" } })
-        ).toEqual({
+        expect(ComplexValidator.check({ user: { name: "toto" } })).toEqual({
             user: {
                 name: "toto",
             },
         });
         expect(
-            await ComplexValidator.check({
+            ComplexValidator.check({
                 name: "toto",
                 email: "toto@gmail.com",
             })

@@ -1,4 +1,4 @@
-const { validator } = require("./Validator");
+const { validator, Validator } = require("./Validator");
 const Validation = require("./Validation");
 const { addKeyToMessage, and } = require("./utils");
 
@@ -13,14 +13,14 @@ const isArray = validator((x) => {
 });
 
 const listValidator = (validator) =>
-    validator.mapWithEntry((values) =>
+    Validator.getEntry().chain((values) =>
         (Array.isArray(values) ? values : [])
             .map((item, key) =>
                 validator
-                    .run(item)
+                    .beforeHook(() => item)
                     .format((message) => addKeyToMessage(key)(message, values))
             )
-            .reduce(and, isArray.run(values))
+            .reduce(and, isArray)
     );
 
 module.exports = listValidator;

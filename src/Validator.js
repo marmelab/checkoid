@@ -1,6 +1,5 @@
-const Task = require("./Task");
+const { Async } = require("./Validation");
 
-// run is a function that return a Task of a Validation
 const Validator = (run) => ({
     run,
     and: (other) => Validator((x) => run(x).and(other.run(x))),
@@ -15,19 +14,17 @@ const Validator = (run) => ({
         ),
     map: (fn) => Validator((x) => fn(run(x))),
     chain: (fn) => Validator((x) => fn(run(x)).run(x)),
-    mapWithEntry: (fn) =>
-        Validator(run)
-            .chain((x) => Validator.getEntry())
-            .map((entry) => fn(entry)),
-    check: (x) =>
-        run(x)
-            .toPromise()
-            .then(({ x }) => x),
+    check: (x) => run(x).getResult(),
 });
 
 Validator.getEntry = () => Validator((x) => x);
 
-const validator = (fn) => Validator(Task.lift(fn));
+const asyncValidator = (fn) => Validator(Async.lift(fn));
 
-exports.Validator = Validator;
-exports.validator = validator;
+const validator = Validator;
+
+module.exports = {
+    Validator,
+    validator,
+    asyncValidator,
+};

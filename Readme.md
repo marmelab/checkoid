@@ -21,19 +21,19 @@ const isNotGmail = validator((value) => {
     return Validation.Valid();
 });
 
-await isEmail.check('test@gmail.com'); // undefined
-await isNotGmail.check('test@gmail.com'); // ['value must not be a gmail adress']
-await isEmail.check('whatever'); // ['value must be an email']
-await isNotGmail.check('whatever'); // ['value must not be a gmail adress']
+isEmail.check('test@gmail.com'); // undefined
+isNotGmail.check('test@gmail.com'); // ['value must not be a gmail adress']
+isEmail.check('whatever'); // ['value must be an email']
+isNotGmail.check('whatever'); // ['value must not be a gmail adress']
 ```
 
 And then combine them with `and`
 
 ```js
 const isEmailNotFromGMail = isEMail.and(isNotGmail);
-await isEmailNotFromGMail.check('whatever'); // ['value must be an email', 'value must not be a gmail adress']
-await isEmailNotFromGMail.check('test@gmail.com'); // ['value must not be a gmail adress']
-await isEmailNotFromGMail.check('test@free.ff'); // undefined
+isEmailNotFromGMail.check('whatever'); // ['value must be an email', 'value must not be a gmail adress']
+isEmailNotFromGMail.check('test@gmail.com'); // ['value must not be a gmail adress']
+isEmailNotFromGMail.check('test@free.ff'); // undefined
 ```
 
 Or with or
@@ -48,9 +48,9 @@ const isEmpty = validator((value) => {
 
 const isOptionalEmail = isEmail.or(isEmpty);
 
-await isOptionalEmail.check(''); // undefined
-await isOptionalEmail.check('test@gmail.com'); // undefined
-await isOptionalEmail.check('invalid mail'); // ['value must be an email', 'value is not empty']
+isOptionalEmail.check(''); // undefined
+isOptionalEmail.check('test@gmail.com'); // undefined
+isOptionalEmail.check('invalid mail'); // ['value must be an email', 'value is not empty']
 ```
 
 You can validate object too
@@ -72,10 +72,10 @@ const validateUser = objectValidator({
     password: isGreaterThan(8),
 });
 
-await validateUser.check({ email: 'john@gmail.com', password: 'shouldnotdisplaythis' }) // undefined
-await validateUser.check({ email: 'john@gmail.com', password: 'secret' })
+validateUser.check({ email: 'john@gmail.com', password: 'shouldnotdisplaythis' }) // undefined
+validateUser.check({ email: 'john@gmail.com', password: 'secret' })
 // [{ key: 'password', message: 'value must be at least 8 characters long' }]
-await validateUser.check('Hi I am John a valid user')
+validateUser.check('Hi I am John a valid user')
 // [{ message: 'value must be an object', value: 'Hi I am John a valid user' }]
 ```
 
@@ -87,11 +87,11 @@ const { listValidator } = require('checkoid');
 // listValidator take any validator and apply it to a list of value
 const isEmailList = listValidator(isEmail);
 
-await isEmailList.check([]); // undefined
-await isEmailList.check(['test@test.com', 'john@doe.com']); // undefined
-await isEmailList.check(['test@test.com', 'I am a valid email', 'john@doe.com']);
+isEmailList.check([]); // undefined
+isEmailList.check(['test@test.com', 'john@doe.com']); // undefined
+isEmailList.check(['test@test.com', 'I am a valid email', 'john@doe.com']);
 // [{ key: '[1]', message: 'value must be an email', value: 'I am a valid email' }]
-await isEmailList.check('I am an email list'); // [{ message: 'value must be an array', value: 'I am an email list' }]
+isEmailList.check('I am an email list'); // [{ message: 'value must be an array', value: 'I am an email list' }]
 ```
 
 Or array of object
@@ -99,12 +99,12 @@ Or array of object
 ```js
 const isUserList = listValidator(validateUser);
 
-await isUserList.check([]); // undefined
-await isUserList.check([
+isUserList.check([]); // undefined
+isUserList.check([
     { email: 'john@gmail.com', password: 'shouldnotdisplaythis' },
     { email: 'jane@gmail.com', password: 'mySecretPassword' },
 ]); // undefined
-await isUserList.check([
+isUserList.check([
     { email: 'john@gmail.com', password: 'shouldnotdisplaythis' },
     'I am an user',
     { email: 'jane@gmail.com', password: '1234' },
@@ -118,10 +118,12 @@ In short all validator can be combined together, and you will always get back a 
 
 As to why the `check` method returns a promise: it is because Checkoid support async validation too.
 
-To create an async validator symply pass an async function:
+It is also possible to create asyncValidator
 
 ```js
-const doesUserIdExists = validator(async value => {
+const { asyncValidator } = require('checkoid');
+
+const doesUserIdExists = asyncValidator(async value => {
     const user = await fetchUser(value);
     if(user) {
         return Validation.Valid();
@@ -129,6 +131,11 @@ const doesUserIdExists = validator(async value => {
 
     return Validation.Invalid(['There is no user with this id']);
 });
+
+// with an async validator the check method return a promise
+await doesUserIdExists.check('badId'); // ['There is no user with this id']
+await doesUserIdExists.check('goodId'); // undefined
 ```
 
-You can pass any function to validator as long as it returns or resolves to Validation object.
+asyncValidators can be combined exactly like syncValidator, they can even be combined with syncValidator. 
+Simply as soon an asyncValidator get combined with other syncValidator, the resultant validator will automatically become async.
