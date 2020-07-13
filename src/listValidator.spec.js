@@ -1,19 +1,18 @@
 const listValidator = require("./listValidator");
 const objectValidator = require("./objectValidator");
-const Validation = require("./Validation");
 const { validator, asyncValidator } = require("./Validator");
 
 const isEmail = validator((value) => {
     if (/@/.test(value)) {
-        return Validation.Valid(value);
+        return;
     }
-    return Validation.Invalid([`value must be an email`]);
+    return `value must be an email`;
 });
 const isPresent = validator((value) => {
     if (!!value) {
-        return Validation.Valid(value);
+        return;
     }
-    return Validation.Invalid([`value must be present`]);
+    return `value must be present`;
 });
 
 const isPresentInDb = asyncValidator(async (id) => {
@@ -21,10 +20,8 @@ const isPresentInDb = asyncValidator(async (id) => {
         setTimeout(resolve, 1);
     });
     if (!id || id === 404) {
-        return Validation.Invalid([`user does not exists`]);
+        return `user does not exists`;
     }
-
-    return Validation.Valid(id);
 });
 
 describe("listValidator", () => {

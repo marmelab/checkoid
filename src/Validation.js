@@ -78,13 +78,30 @@ Async.of = (a) => Async((_, resolve) => resolve(a));
 Async.valid = (a) => Async((_, resolve) => resolve(Valid(a)));
 Async.invalid = (a) => Async((_, resolve) => resolve(Invalid(a)));
 
+const lift = (fn) => (value) => {
+    const result = fn(value);
+    if (result && result.then) {
+        throw new Error(
+            "lift only accept synchronous function, use asyncLift instead"
+        );
+    }
+
+    if (result) {
+        return Invalid([result]);
+    }
+
+    return Valid(value);
+};
+
 // Takes a function and wrap its result in an Async data type
-Async.lift = (fn) => (...args) =>
+const asyncLift = (fn) => (value) =>
     Async((reject, resolve) => {
         try {
             // Promise.resolve will convert the function result to a promise if it is not
-            Promise.resolve(fn(...args))
-                .then(resolve)
+            Promise.resolve(fn(value))
+                .then((result) =>
+                    resolve(result ? Invalid([result]) : Valid(value))
+                )
                 .catch(reject);
         } catch (error) {
             // catch eventual synchronous error
@@ -92,4 +109,4 @@ Async.lift = (fn) => (...args) =>
         }
     });
 
-module.exports = { Valid, Invalid, Async };
+module.exports = { Valid, Invalid, Async, lift, asyncLift };

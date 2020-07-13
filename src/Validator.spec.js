@@ -1,23 +1,21 @@
 const { validator, asyncValidator } = require("./Validator");
-const Validation = require("./Validation");
 
 const isEmpty = validator((value) => {
     if (!!value) {
-        return Validation.Invalid([`value is optional`]);
+        return `value is optional`;
     }
-    return Validation.Valid(value);
 });
 const isEmail = validator((value) => {
     if (/@/.test(value)) {
-        return Validation.Valid(value);
+        return;
     }
-    return Validation.Invalid([`value must be an email`]);
+    return `value must be an email`;
 });
 const isPresent = validator((value) => {
     if (!!value) {
-        return Validation.Valid(value);
+        return;
     }
-    return Validation.Invalid([`value must be present`]);
+    return `value must be present`;
 });
 
 describe("Validator", () => {
@@ -25,9 +23,9 @@ describe("Validator", () => {
         it("should allow to run validator returning Validation", () => {
             const validate = validator((value) => {
                 if (/@/.test(value)) {
-                    return Validation.Valid(value);
+                    return;
                 }
-                return Validation.Invalid([`value must be an email`]);
+                return `value must be an email`;
             });
 
             const validValidation = validate.check("some@email.com");
@@ -80,10 +78,8 @@ describe("Validator", () => {
                 setTimeout(resolve, 1);
             });
             if (id === "404") {
-                return Validation.Invalid([`user does not exists`]);
+                return `user does not exists`;
             }
-
-            return Validation.Valid(id);
         });
         it("should support async validator function", async () => {
             const validValidation = await isPresentInDb.check("200");

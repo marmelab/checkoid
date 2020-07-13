@@ -4,24 +4,24 @@ Checkoid is an experimental validator library using Monoid under the hood to all
 
 ## Usage
 You can create simple validator:
+Simply pass a function, that either return a value for an error, or nothing if the value is valid.
 
 ```js
-const { validator, Validation } = require('checkoid');
+const { validator } = require('checkoid');
 
 const isEmail = validator((value) => {
     if (/@/.test(value)) {
-        return Validation.Valid();
+        return;
     }
-    return Validation.Invalid(['value must be an email']);
+    return 'value must be an email';
 });
 const isNotGmail = validator((value) => {
     if (/gmail.com/.test(value)) {
-        return Validation.Invalid(['value must not be a gmail adress']);
+        return 'value must not be a gmail adress';
     }
-    return Validation.Valid();
 });
 
-isEmail.check('test@gmail.com'); // undefined
+isEmail.check('test@gmail.com'); // test@gmail.com
 isNotGmail.check('test@gmail.com'); // ['value must not be a gmail adress']
 isEmail.check('whatever'); // ['value must be an email']
 isNotGmail.check('whatever'); // ['value must not be a gmail adress']
@@ -33,7 +33,7 @@ And then combine them with `and`
 const isEmailNotFromGMail = isEMail.and(isNotGmail);
 isEmailNotFromGMail.check('whatever'); // ['value must be an email', 'value must not be a gmail adress']
 isEmailNotFromGMail.check('test@gmail.com'); // ['value must not be a gmail adress']
-isEmailNotFromGMail.check('test@free.ff'); // undefined
+isEmailNotFromGMail.check('test@free.fr'); // test@free.fr
 ```
 
 Or with or
@@ -41,15 +41,14 @@ Or with or
 ```js
 const isEmpty = validator((value) => {
     if (!!value) {
-        return Validation.Invalid([`value is not empty`]);
+        return 'value is not empty';
     }
-    return Validation.Valid(value);
 });
 
 const isOptionalEmail = isEmail.or(isEmpty);
 
-isOptionalEmail.check(''); // undefined
-isOptionalEmail.check('test@gmail.com'); // undefined
+isOptionalEmail.check(''); // ''
+isOptionalEmail.check('test@gmail.com'); // test@gmail.com
 isOptionalEmail.check('invalid mail'); // ['value must be an email', 'value is not empty']
 ```
 
@@ -60,10 +59,8 @@ const { objectValidator } = require('checkoid');
 
 const isGreaterThan = length => validator(value => {
     if (value && value.length <= length) {
-        return Validation.Invalid([`value must be at least ${length} characters long`]);
+        return `value must be at least ${length} characters long`;
     }
-
-    return Validation.Valid();
 })
 
 // objectValidator takes an object of other validator and return a validator
@@ -116,8 +113,6 @@ isUserList.check([
 
 In short all validator can be combined together, and you will always get back a Validator.
 
-As to why the `check` method returns a promise: it is because Checkoid support async validation too.
-
 It is also possible to create asyncValidator
 
 ```js
@@ -125,16 +120,16 @@ const { asyncValidator } = require('checkoid');
 
 const doesUserIdExists = asyncValidator(async value => {
     const user = await fetchUser(value);
-    if(user) {
-        return Validation.Valid();
+    if (user) {
+        return;
     }
 
-    return Validation.Invalid(['There is no user with this id']);
+    return 'There is no user with this id';
 });
 
 // with an async validator the check method return a promise
 await doesUserIdExists.check('badId'); // ['There is no user with this id']
-await doesUserIdExists.check('goodId'); // undefined
+await doesUserIdExists.check('goodId'); // 'goodId'
 ```
 
 asyncValidators can be combined exactly like syncValidator, they can even be combined with syncValidator. 

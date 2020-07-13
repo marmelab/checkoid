@@ -1,31 +1,29 @@
 const objectValidator = require("./objectValidator");
-const Validation = require("./Validation");
 const { validator, asyncValidator } = require("./Validator");
 
 const isPresent = validator((value) => {
     if (!!value) {
-        return Validation.Valid(value);
+        return;
     }
-    return Validation.Invalid([`value must be present`]);
+    return `value must be present`;
 });
 
 const isLongerThanTree = validator((value) => {
     if (value && value.length > 3) {
-        return Validation.Valid(value);
+        return;
     }
-    return Validation.Invalid([`value must be longer than 3`]);
+    return `value must be longer than 3`;
 });
 const isAbsent = validator((value) => {
     if (!!value) {
-        return Validation.Invalid([`value can be absent`]);
+        return `value can be absent`;
     }
-    return Validation.Valid(value);
 });
 const isEmail = validator((value) => {
     if (/@/.test(value)) {
-        return Validation.Valid(value);
+        return;
     }
-    return Validation.Invalid([`value must be an email`]);
+    return `value must be an email`;
 });
 
 const isPresentInDb = asyncValidator(async (id) => {
@@ -33,10 +31,8 @@ const isPresentInDb = asyncValidator(async (id) => {
         setTimeout(resolve, 1);
     });
     if (!id || id === "404") {
-        return Validation.Invalid([`user does not exists`]);
+        return `user does not exists`;
     }
-
-    return Validation.Valid(id);
 });
 
 describe("objectValidator", () => {

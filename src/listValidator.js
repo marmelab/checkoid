@@ -4,12 +4,10 @@ const { addKeyToMessage, and } = require("./utils");
 
 const isArray = validator((x) => {
     if (Array.isArray(x)) {
-        return Validation.Valid();
+        return;
     }
 
-    return Validation.Invalid([
-        { message: "value must be an array", value: x },
-    ]);
+    return { message: "value must be an array", value: x };
 });
 
 const listValidator = (validator) =>

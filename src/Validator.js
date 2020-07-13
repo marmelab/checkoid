@@ -1,4 +1,4 @@
-const { Async } = require("./Validation");
+const { asyncLift, lift } = require("./Validation");
 
 const Validator = (run) => ({
     run,
@@ -19,9 +19,9 @@ const Validator = (run) => ({
 
 Validator.getEntry = () => Validator((x) => x);
 
-const asyncValidator = (fn) => Validator(Async.lift(fn));
+const asyncValidator = (fn) => Validator(asyncLift(fn));
 
-const validator = Validator;
+const validator = (fn) => Validator(lift(fn));
 
 module.exports = {
     Validator,
