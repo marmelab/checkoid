@@ -1,4 +1,4 @@
-![Travis (.com)](https://img.shields.io/travis/com/marmelab/checkoid.svg) ![GitHub top language](https://img.shields.io/github/languages/top/marmelab/checkoid.svg) ![GitHub contributors](https://img.shields.io/github/contributors/marmelab/checkoid.svg) ![checkoid.svg](https://img.shields.io/github/license/marmelab/checkoid.svg) ![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)
+![Tests on Github](https://github.com/marmelab/checkoid/workflows/test/badge.svg) ![Travis (.com)](https://img.shields.io/travis/com/marmelab/checkoid.svg) ![GitHub top language](https://img.shields.io/github/languages/top/marmelab/checkoid.svg) ![GitHub contributors](https://img.shields.io/github/contributors/marmelab/checkoid.svg) ![checkoid.svg](https://img.shields.io/github/license/marmelab/checkoid.svg) ![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)
 
 Checkoid is an experimental validator library using Monoid under the hood to allow to combine validator like you would lego piece.
 
