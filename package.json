@@ -1,15 +1,15 @@
 {
-    "name": "checkoid",
-    "version": "1.0.0",
-    "description": "",
-    "main": "index.js",
-    "scripts": {
-        "test": "jest",
-        "test-watch": "jest --watch"
-    },
-    "author": "",
-    "license": "ISC",
-    "devDependencies": {
-        "jest": "26.0.1"
-    }
+  "name": "checkoid",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "test-watch": "jest --watch"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "26.0.1"
+  }
 }
