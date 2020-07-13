@@ -49,7 +49,7 @@ describe("objectValidator", () => {
         ]);
         expect(
             UserValidator.check({ name: "toto", email: "toto@gmail.com" })
-        ).toEqual({ name: "toto", email: "toto@gmail.com" });
+        ).toBeUndefined();
 
         expect(
             UserValidator.check({ name: "toto", email: "not an email" })
@@ -115,16 +115,12 @@ describe("objectValidator", () => {
 
         const UserValidator = objectValidator(userSpec);
 
-        expect(UserValidator.check({ name: "toto" })).toEqual({
-            name: "toto",
-        });
+        expect(UserValidator.check({ name: "toto" })).toBeUndefined();
         expect(
             UserValidator.check({ name: "toto", email: "toto@gmail.com" })
-        ).toEqual({ name: "toto", email: "toto@gmail.com" });
+        ).toBeUndefined();
 
-        expect(UserValidator.check({ name: "toto" })).toEqual({
-            name: "toto",
-        });
+        expect(UserValidator.check({ name: "toto" })).toBeUndefined();
         expect(
             UserValidator.check({ name: "toto", email: "not an email" })
         ).toEqual([
@@ -166,11 +162,9 @@ describe("objectValidator", () => {
 
         const ComplexValidator = objectValidator(spec);
 
-        expect(ComplexValidator.check({ user: { name: "toto" } })).toEqual({
-            user: {
-                name: "toto",
-            },
-        });
+        expect(
+            ComplexValidator.check({ user: { name: "toto" } })
+        ).toBeUndefined();
         expect(
             ComplexValidator.check({
                 name: "toto",

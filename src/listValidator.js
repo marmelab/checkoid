@@ -1,13 +1,10 @@
 const { validator, Validator } = require("./Validator");
-const Validation = require("./Validation");
 const { addKeyToMessage, and } = require("./utils");
 
 const isArray = validator((x) => {
-    if (Array.isArray(x)) {
-        return;
+    if (!Array.isArray(x)) {
+        return { message: "value must be an array", value: x };
     }
-
-    return { message: "value must be an array", value: x };
 });
 
 const listValidator = (validator) =>

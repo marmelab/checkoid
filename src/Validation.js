@@ -1,24 +1,23 @@
 // Valid will keep it's original value
-const Valid = (x) => ({
-    x,
+const Valid = () => ({
     isValid: true,
     and: (other) => {
         if (other.fork) {
-            return Async.of(Valid(x)).and(other);
+            return Async.of(Valid()).and(other);
         }
 
-        return other.isValid ? Valid(x) : other;
+        return other.isValid ? Valid() : other;
     },
     or: (other) => {
         // If other is Async convert Valid to Async(Valid)
         if (other.fork) {
-            return Async.of(Valid(x));
+            return Async.of(Valid());
         }
-        return Valid(x);
+        return Valid();
     }, // no matter the other we keep the valid value
-    format: (fn) => Valid(x),
-    fold: (onValid, onInvalid) => onValid(x),
-    getResult: () => x,
+    format: (fn) => Valid(),
+    fold: (onValid, onInvalid) => onValid(),
+    getResult: () => undefined,
 });
 
 exports.Valid = Valid;
@@ -75,7 +74,7 @@ const Async = (fork) => ({
         ).then((validation) => validation.getResult()),
 });
 Async.of = (a) => Async((_, resolve) => resolve(a));
-Async.valid = (a) => Async((_, resolve) => resolve(Valid(a)));
+Async.valid = () => Async((_, resolve) => resolve(Valid()));
 Async.invalid = (a) => Async((_, resolve) => resolve(Invalid(a)));
 
 const lift = (fn) => (value) => {
@@ -99,9 +98,7 @@ const asyncLift = (fn) => (value) =>
         try {
             // Promise.resolve will convert the function result to a promise if it is not
             Promise.resolve(fn(value))
-                .then((result) =>
-                    resolve(result ? Invalid([result]) : Valid(value))
-                )
+                .then((result) => resolve(result ? Invalid([result]) : Valid()))
                 .catch(reject);
         } catch (error) {
             // catch eventual synchronous error

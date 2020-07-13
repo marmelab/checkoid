@@ -29,7 +29,7 @@ describe("Validator", () => {
             });
 
             const validValidation = validate.check("some@email.com");
-            expect(validValidation).toBe("some@email.com");
+            expect(validValidation).toBeUndefined();
 
             const invalidValidation = validate.check(
                 "I will type whatever I want"
@@ -41,7 +41,7 @@ describe("Validator", () => {
             const validValidation = isPresent
                 .and(isEmail)
                 .check("some@email.com");
-            expect(validValidation).toBe("some@email.com");
+            expect(validValidation).toBeUndefined();
 
             const noValueValidation = isPresent.and(isEmail).check("");
             expect(noValueValidation).toEqual([
@@ -57,10 +57,10 @@ describe("Validator", () => {
 
         it("should allow to combine validator with or", () => {
             const emailValidation = isEmail.or(isEmpty).check("some@email.com");
-            expect(emailValidation).toBe("some@email.com");
+            expect(emailValidation).toBeUndefined();
 
             const noValueValidation = isEmail.or(isEmpty).check("");
-            expect(noValueValidation).toBe("");
+            expect(noValueValidation).toBeUndefined();
 
             const invalidEmailValidation = isEmail
                 .or(isEmpty)
@@ -83,7 +83,7 @@ describe("Validator", () => {
         });
         it("should support async validator function", async () => {
             const validValidation = await isPresentInDb.check("200");
-            expect(validValidation).toEqual("200");
+            expect(validValidation).toBeUndefined();
 
             const invalidValidation = await isPresent
                 .and(isPresentInDb)

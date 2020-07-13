@@ -21,7 +21,7 @@ const isNotGmail = validator((value) => {
     }
 });
 
-isEmail.check('test@gmail.com'); // test@gmail.com
+isEmail.check('test@gmail.com'); // undefined
 isNotGmail.check('test@gmail.com'); // ['value must not be a gmail adress']
 isEmail.check('whatever'); // ['value must be an email']
 isNotGmail.check('whatever'); // ['value must not be a gmail adress']
@@ -33,7 +33,7 @@ And then combine them with `and`
 const isEmailNotFromGMail = isEMail.and(isNotGmail);
 isEmailNotFromGMail.check('whatever'); // ['value must be an email', 'value must not be a gmail adress']
 isEmailNotFromGMail.check('test@gmail.com'); // ['value must not be a gmail adress']
-isEmailNotFromGMail.check('test@free.fr'); // test@free.fr
+isEmailNotFromGMail.check('test@free.fr'); // undefined
 ```
 
 Or with or
@@ -47,8 +47,8 @@ const isEmpty = validator((value) => {
 
 const isOptionalEmail = isEmail.or(isEmpty);
 
-isOptionalEmail.check(''); // ''
-isOptionalEmail.check('test@gmail.com'); // test@gmail.com
+isOptionalEmail.check(''); // undefined
+isOptionalEmail.check('test@gmail.com'); // undefined
 isOptionalEmail.check('invalid mail'); // ['value must be an email', 'value is not empty']
 ```
 
@@ -129,7 +129,7 @@ const doesUserIdExists = asyncValidator(async value => {
 
 // with an async validator the check method return a promise
 await doesUserIdExists.check('badId'); // ['There is no user with this id']
-await doesUserIdExists.check('goodId'); // 'goodId'
+await doesUserIdExists.check('goodId'); // undefined'
 ```
 
 asyncValidators can be combined exactly like syncValidator, they can even be combined with syncValidator. 
