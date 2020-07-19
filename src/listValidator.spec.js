@@ -1,5 +1,5 @@
 const listValidator = require("./listValidator");
-const objectValidator = require("./objectValidator");
+const { object } = require("./validators");
 const { validator, asyncValidator } = require("./Validator");
 
 const isEmail = validator((value) => {
@@ -67,7 +67,7 @@ describe("listValidator", () => {
     });
 
     it("should allow to apply object validation to a list of value", () => {
-        const userValidators = objectValidator({
+        const userValidators = object.shape({
             name: isPresent,
             email: isEmail,
         });
@@ -106,9 +106,9 @@ describe("listValidator", () => {
     });
 
     it("should allow to be nested with validate Object", () => {
-        const validators = objectValidator({
+        const validators = object.shape({
             users: listValidator(
-                objectValidator({
+                object.shape({
                     name: isPresent,
                     email: isEmail,
                 })
@@ -124,7 +124,7 @@ describe("listValidator", () => {
         expect(res).toEqual([
             {
                 key: ["users", 0],
-                message: "value is not an object",
+                message: "value must be an object",
                 value: "toto",
             },
             {

@@ -1,5 +1,5 @@
-const objectValidator = require("./objectValidator");
-const { validator, asyncValidator } = require("./Validator");
+const { shape } = require("./object");
+const { validator, asyncValidator } = require("../Validator");
 
 const isPresent = validator((value) => {
     if (!!value) {
@@ -35,14 +35,14 @@ const isPresentInDb = asyncValidator(async (id) => {
     }
 });
 
-describe("objectValidator", () => {
+describe("shape", () => {
     it("should allow to create a validator for an user object given a simple spec", () => {
         const userSpec = {
             name: isPresent,
             email: isEmail,
         };
 
-        const UserValidator = objectValidator(userSpec);
+        const UserValidator = shape(userSpec);
 
         expect(UserValidator.check({ name: "toto" })).toEqual([
             { key: ["email"], message: "value must be an email" },
@@ -66,7 +66,7 @@ describe("objectValidator", () => {
         ]);
 
         expect(UserValidator.check("toto")).toEqual([
-            { message: "value is not an object", value: "toto" },
+            { message: "value must be an object", value: "toto" },
             {
                 key: ["name"],
                 message: "value must be present",
@@ -80,6 +80,40 @@ describe("objectValidator", () => {
         ]);
     });
 
+    it("should return error when object contains extra key and exact is true", () => {
+        const userSpec = {
+            name: isPresent,
+            email: isEmail,
+        };
+        const UserValidator = shape(userSpec);
+        const ExactUserValidator = shape(userSpec, true);
+
+        expect(
+            UserValidator.check({
+                name: "toto",
+                email: "toto@gmail.com",
+                firstName: "tototoo",
+            })
+        ).toBeUndefined();
+
+        expect(
+            ExactUserValidator.check({
+                name: "toto",
+                email: "toto@gmail.com",
+                firstName: "tototoo",
+            })
+        ).toEqual([
+            {
+                message: "Value has extraneous keys: firstName",
+                value: {
+                    name: "toto",
+                    email: "toto@gmail.com",
+                    firstName: "tototoo",
+                },
+            },
+        ]);
+    });
+
     it("should return an async validator if at least one validator in spec is async", async () => {
         const userSpec = {
             id: isPresentInDb,
@@ -87,7 +121,7 @@ describe("objectValidator", () => {
             email: isEmail,
         };
 
-        const UserValidator = objectValidator(userSpec);
+        const UserValidator = shape(userSpec);
 
         const promise = UserValidator.check({
             id: null,
@@ -113,7 +147,7 @@ describe("objectValidator", () => {
             email: isEmail.or(isAbsent),
         };
 
-        const UserValidator = objectValidator(userSpec);
+        const UserValidator = shape(userSpec);
 
         expect(UserValidator.check({ name: "toto" })).toBeUndefined();
         expect(
@@ -152,15 +186,15 @@ describe("objectValidator", () => {
         ]);
     });
 
-    it("should allow to nest objectValidator", () => {
+    it("should allow to nest shape", () => {
         const spec = {
-            user: objectValidator({
+            user: shape({
                 name: isPresent.and(isLongerThanTree),
                 email: isEmail.or(isAbsent),
             }),
         };
 
-        const ComplexValidator = objectValidator(spec);
+        const ComplexValidator = shape(spec);
 
         expect(
             ComplexValidator.check({ user: { name: "toto" } })
@@ -171,7 +205,7 @@ describe("objectValidator", () => {
                 email: "toto@gmail.com",
             })
         ).toEqual([
-            { key: ["user"], message: "value is not an object" },
+            { key: ["user"], message: "value must be an object" },
             { key: ["user", "name"], message: "value must be present" },
             { key: ["user", "name"], message: "value must be longer than 3" },
         ]);
