@@ -1,6 +1,6 @@
-const listValidator = require("./listValidator");
-const { object } = require("./validators");
-const { validator, asyncValidator } = require("./Validator");
+const { arrayOf } = require("./array");
+const { object } = require("./");
+const { validator, asyncValidator } = require("../Validator");
 
 const isEmail = validator((value) => {
     if (/@/.test(value)) {
@@ -24,10 +24,10 @@ const isPresentInDb = asyncValidator(async (id) => {
     }
 });
 
-describe("listValidator", () => {
+describe("arrayOf", () => {
     it("should allow to apply validation to a list of value", () => {
         const emailValidator = isPresent.and(isEmail);
-        const res = listValidator(emailValidator).check([
+        const res = arrayOf(emailValidator).check([
             "test@email.com",
             "not an email",
         ]);
@@ -41,7 +41,7 @@ describe("listValidator", () => {
     });
 
     it("should allow to apply asyncValidation to a list of value", async () => {
-        const areIdsPresentIndDb = listValidator(isPresentInDb);
+        const areIdsPresentIndDb = arrayOf(isPresentInDb);
         const res = areIdsPresentIndDb.check([201, 404, 200]);
         expect(res.then).toBeDefined();
         expect(await res).toEqual([
@@ -55,9 +55,7 @@ describe("listValidator", () => {
 
     it("should return appropriate error if value is no array", () => {
         const emailValidator = isPresent.and(isEmail);
-        const res = listValidator(emailValidator).check(
-            "Hi, trust me I am a list"
-        );
+        const res = arrayOf(emailValidator).check("Hi, trust me I am a list");
         expect(res).toEqual([
             {
                 message: "value must be an array",
@@ -71,7 +69,7 @@ describe("listValidator", () => {
             name: isPresent,
             email: isEmail,
         });
-        const res = listValidator(userValidators).check([
+        const res = arrayOf(userValidators).check([
             { name: "toto", email: "test@email.com" },
             { name: "toto", email: "not an email" },
         ]);
@@ -86,8 +84,8 @@ describe("listValidator", () => {
 
     it("should allow to apply list validation to a list of list", () => {
         const emailValidator = isPresent.and(isEmail);
-        const emailListValidators = listValidator(emailValidator);
-        const res = listValidator(emailListValidators).check([
+        const emailarrayOfs = arrayOf(emailValidator);
+        const res = arrayOf(emailarrayOfs).check([
             ["test@email.com", "not an email"],
             ["not an email"],
         ]);
@@ -107,7 +105,7 @@ describe("listValidator", () => {
 
     it("should allow to be nested with validate Object", () => {
         const validators = object.shape({
-            users: listValidator(
+            users: arrayOf(
                 object.shape({
                     name: isPresent,
                     email: isEmail,
