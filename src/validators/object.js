@@ -1,8 +1,10 @@
+const predicate = require("predicate");
+
 const { addKeyToMessage, and } = require("../utils");
 const { validator } = require("../Validator");
 
 const isObject = validator((value) =>
-    typeof value !== "object" ? "value must be an object" : undefined
+    predicate.object(value) ? undefined : "value must be an object"
 );
 
 const hasNoExtraneousKeys = (keys) =>
