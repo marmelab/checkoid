@@ -1,39 +1,36 @@
-const predicate = require("predicate");
 const { validator } = require("../Validator");
 
-const length = (l) =>
+const length = (x) =>
     validator((value) =>
-        predicate.equal(value.length, l)
-            ? undefined
-            : `value must have a length of ${l}`
+        value.length === x ? undefined : `value must have a length of ${x}`
     );
 
-const lengthGt = (l) =>
+const lengthGt = (min) =>
     validator((value) =>
-        predicate.greater(value.length, l)
+        value.length > min
             ? undefined
-            : `value must have a length greater than ${l}`
+            : `value must have a length greater than ${min}`
     );
 
-const lengthGte = (l) =>
+const lengthGte = (min) =>
     validator((value) =>
-        predicate.greaterEq(value.length, l)
+        value.length >= min
             ? undefined
-            : `value must have a length of at least ${l}`
+            : `value must have a length of at least ${min}`
     );
 
-const lengthLt = (l) =>
+const lengthLt = (max) =>
     validator((value) =>
-        predicate.less(value.length, l)
+        value.length < max
             ? undefined
-            : `value must have a length less than ${l}`
+            : `value must have a length less than ${max}`
     );
 
-const lengthLte = (l) =>
+const lengthLte = (max) =>
     validator((value) =>
-        predicate.lessEq(value.length, l)
+        value.length <= max
             ? undefined
-            : `value must have a length of at most ${l}`
+            : `value must have a length of at most ${max}`
     );
 
 module.exports = {

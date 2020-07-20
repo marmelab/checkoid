@@ -9,9 +9,7 @@
     },
     "author": "",
     "license": "ISC",
-    "dependencies": {
-        "predicate": "2.0.0"
-    },
+    "dependencies": {},
     "devDependencies": {
         "jest": "26.0.1"
     }
