@@ -1,13 +1,10 @@
 const { arrayOf } = require("./array");
 const { object } = require("./");
 const { validator, asyncValidator } = require("../Validator");
+const { match } = require("./string");
 
-const isEmail = validator((value) => {
-    if (/@/.test(value)) {
-        return;
-    }
-    return `value must be an email`;
-});
+const isEmail = match(/@/, `value must be an email`);
+
 const isPresent = validator((value) => {
     if (!!value) {
         return;

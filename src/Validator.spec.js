@@ -1,16 +1,12 @@
 const { validator, asyncValidator } = require("./Validator");
+const { match } = require("./validators/string");
 
 const isEmpty = validator((value) => {
     if (!!value) {
         return `value is optional`;
     }
 });
-const isEmail = validator((value) => {
-    if (/@/.test(value)) {
-        return;
-    }
-    return `value must be an email`;
-});
+const isEmail = match(/@/, `value must be an email`);
 const isPresent = validator((value) => {
     if (!!value) {
         return;

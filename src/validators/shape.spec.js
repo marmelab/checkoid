@@ -1,5 +1,7 @@
 const { shape } = require("./object");
 const { validator, asyncValidator } = require("../Validator");
+const { lengthGt } = require("./length");
+const { match } = require("./string");
 
 const isPresent = validator((value) => {
     if (!!value) {
@@ -8,23 +10,14 @@ const isPresent = validator((value) => {
     return `value must be present`;
 });
 
-const isLongerThanTree = validator((value) => {
-    if (value && value.length > 3) {
-        return;
-    }
-    return `value must be longer than 3`;
-});
+const isLongerThanTree = lengthGt(3);
+
 const isAbsent = validator((value) => {
     if (!!value) {
         return `value can be absent`;
     }
 });
-const isEmail = validator((value) => {
-    if (/@/.test(value)) {
-        return;
-    }
-    return `value must be an email`;
-});
+const isEmail = match(/@/, `value must be an email`);
 
 const isPresentInDb = asyncValidator(async (id) => {
     await new Promise((resolve) => {
@@ -173,14 +166,14 @@ describe("shape", () => {
             { key: ["name"], message: "value must be present", value: "" },
             {
                 key: ["name"],
-                message: "value must be longer than 3",
+                message: "value must have a length greater than 3",
                 value: "",
             },
         ]);
         expect(UserValidator.check({ name: "to", email: "" })).toEqual([
             {
                 key: ["name"],
-                message: "value must be longer than 3",
+                message: "value must have a length greater than 3",
                 value: "to",
             },
         ]);
@@ -207,7 +200,10 @@ describe("shape", () => {
         ).toEqual([
             { key: ["user"], message: "value must be an object" },
             { key: ["user", "name"], message: "value must be present" },
-            { key: ["user", "name"], message: "value must be longer than 3" },
+            {
+                key: ["user", "name"],
+                message: "value must have a length greater than 3",
+            },
         ]);
     });
 });
