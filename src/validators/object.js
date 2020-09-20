@@ -32,10 +32,7 @@ const shape = (spec, exact) => {
                 .beforeHook((v) => v && v[key])
                 .format(addKeyToMessage(key))
         )
-        .reduce(
-            and,
-            isObjectValidator.format((message, value) => ({ message, value }))
-        );
+        .reduce(and, isObjectValidator);
 };
 
 module.exports = {

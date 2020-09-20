@@ -19,9 +19,11 @@ const Validator = (run) => ({
 
 Validator.getEntry = () => Validator((x) => x);
 
-const asyncValidator = (fn) => Validator(asyncLift(fn));
+const asyncValidator = (fn) =>
+    Validator(asyncLift(fn)).format((message, value) => ({ message, value }));
 
-const validator = (fn) => Validator(lift(fn));
+const validator = (fn) =>
+    Validator(lift(fn)).format((message, value) => ({ message, value }));
 
 module.exports = {
     Validator,

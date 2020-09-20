@@ -22,17 +22,25 @@ const isNotGmail = validator((value) => {
 });
 
 isEmail.check('test@gmail.com'); // undefined
-isNotGmail.check('test@gmail.com'); // ['value must not be a gmail adress']
+isNotGmail.check('test@gmail.com'); 
+// [{ message: 'value must not be a gmail adress', value: 'test@gmail.com' }]
 isEmail.check('whatever'); // ['value must be an email']
-isNotGmail.check('whatever'); // ['value must not be a gmail adress']
+// [{ message: 'value must be an email', value: 'whatever' }]
+isNotGmail.check('whatever');
+// [{ message: 'value must not be a gmail adress', value: 'whatever' }]
 ```
 
 And then combine them with `and`
 
 ```js
 const isEmailNotFromGMail = isEMail.and(isNotGmail);
-isEmailNotFromGMail.check('whatever'); // ['value must be an email', 'value must not be a gmail adress']
-isEmailNotFromGMail.check('test@gmail.com'); // ['value must not be a gmail adress']
+isEmailNotFromGMail.check('whatever'); 
+// [
+//    { message: 'value must be an email', value: 'whatever' }, 
+//    { message: 'value must not be a gmail adress', value: 'test@gmail.com' }
+// ]
+isEmailNotFromGMail.check('test@gmail.com'); 
+// [{ message: 'value must not be a gmail adress', value: 'test@gmail.com' }]
 isEmailNotFromGMail.check('test@free.fr'); // undefined
 ```
 
@@ -49,7 +57,11 @@ const isOptionalEmail = isEmail.or(isEmpty);
 
 isOptionalEmail.check(''); // undefined
 isOptionalEmail.check('test@gmail.com'); // undefined
-isOptionalEmail.check('invalid mail'); // ['value must be an email', 'value is not empty']
+isOptionalEmail.check('invalid mail');
+// [
+//     { message: 'value must be an email', value: 'invalid mail' },
+//      { message: ''value is not empty'', value: 'invalid mail' }
+// ]
 ```
 
 You can validate object too
@@ -71,7 +83,7 @@ const validateUser = objectValidator({
 
 validateUser.check({ email: 'john@gmail.com', password: 'shouldnotdisplaythis' }) // undefined
 validateUser.check({ email: 'john@gmail.com', password: 'secret' })
-// [{ key: 'password', message: 'value must be at least 8 characters long' }]
+// [{ key: ['password'], message: 'value must be at least 8 characters long', value: 'secret' }]
 validateUser.check('Hi I am John a valid user')
 // [{ message: 'value must be an object', value: 'Hi I am John a valid user' }]
 ```
@@ -87,7 +99,7 @@ const isEmailList = listValidator(isEmail);
 isEmailList.check([]); // undefined
 isEmailList.check(['test@test.com', 'john@doe.com']); // undefined
 isEmailList.check(['test@test.com', 'I am a valid email', 'john@doe.com']);
-// [{ key: '[1]', message: 'value must be an email', value: 'I am a valid email' }]
+// [{ key: [1], message: 'value must be an email', value: 'I am a valid email' }]
 isEmailList.check('I am an email list'); // [{ message: 'value must be an array', value: 'I am an email list' }]
 ```
 
@@ -105,9 +117,10 @@ isUserList.check([
     { email: 'john@gmail.com', password: 'shouldnotdisplaythis' },
     'I am an user',
     { email: 'jane@gmail.com', password: '1234' },
-]); // [
-//    { key: '[1]', mesage: 'value is not an object', value: 'I am an user' },
-//    { key: '[2].password', message: 'value must be at least 8 characters long', value: '1234' },
+]); 
+// [
+//    { key: [1], mesage: 'value is not an object', value: 'I am an user' },
+//    { key: [2, 'password'], message: 'value must be at least 8 characters long', value: '1234' },
 // ]
 ```
 
@@ -128,7 +141,8 @@ const doesUserIdExists = asyncValidator(async value => {
 });
 
 // with an async validator the check method return a promise
-await doesUserIdExists.check('badId'); // ['There is no user with this id']
+await doesUserIdExists.check('badId');
+// [{ message: 'There is no user with this id', value: 'badId' }]
 await doesUserIdExists.check('goodId'); // undefined'
 ```
 

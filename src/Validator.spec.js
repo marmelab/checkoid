@@ -30,7 +30,12 @@ describe("Validator", () => {
             const invalidValidation = validate.check(
                 "I will type whatever I want"
             );
-            expect(invalidValidation).toEqual(["value must be an email"]);
+            expect(invalidValidation).toEqual([
+                {
+                    message: "value must be an email",
+                    value: "I will type whatever I want",
+                },
+            ]);
         });
 
         it("should allow to combine validator with and", () => {
@@ -41,14 +46,16 @@ describe("Validator", () => {
 
             const noValueValidation = isPresent.and(isEmail).check("");
             expect(noValueValidation).toEqual([
-                "value must be present",
-                "value must be an email",
+                { message: "value must be present", value: "" },
+                { message: "value must be an email", value: "" },
             ]);
 
             const invalidEmailValidation = isPresent
                 .and(isEmail)
                 .check("whatever");
-            expect(invalidEmailValidation).toEqual(["value must be an email"]);
+            expect(invalidEmailValidation).toEqual([
+                { message: "value must be an email", value: "whatever" },
+            ]);
         });
 
         it("should allow to combine validator with or", () => {
@@ -62,8 +69,8 @@ describe("Validator", () => {
                 .or(isEmpty)
                 .check("whatever");
             expect(invalidEmailValidation).toEqual([
-                "value must be an email",
-                "value is optional",
+                { message: "value must be an email", value: "whatever" },
+                { message: "value is optional", value: "whatever" },
             ]);
         });
     });
@@ -84,12 +91,16 @@ describe("Validator", () => {
             const invalidValidation = await isPresent
                 .and(isPresentInDb)
                 .check("404");
-            expect(invalidValidation).toEqual(["user does not exists"]);
+            expect(invalidValidation).toEqual([
+                { message: "user does not exists", value: "404" },
+            ]);
 
             const invalidValidation2 = await isPresent
                 .and(isPresentInDb)
                 .check("");
-            expect(invalidValidation2).toEqual(["value must be present"]);
+            expect(invalidValidation2).toEqual([
+                { message: "value must be present", value: "" },
+            ]);
         });
 
         it("should return a Validator.Async when concatenated with a Validator.sync", async () => {
@@ -98,7 +109,9 @@ describe("Validator", () => {
             const andPromise = andValidator.check("404");
 
             expect(andPromise.then).toBeDefined();
-            expect(await andPromise).toEqual(["user does not exists"]);
+            expect(await andPromise).toEqual([
+                { message: "user does not exists", value: "404" },
+            ]);
 
             const orValidator = isPresentInDb.or(isEmpty);
 
@@ -106,8 +119,8 @@ describe("Validator", () => {
 
             expect(orPromise.then).toBeDefined();
             expect(await orPromise).toEqual([
-                "user does not exists",
-                "value is optional",
+                { message: "user does not exists", value: "404" },
+                { message: "value is optional", value: "404" },
             ]);
         });
 
@@ -117,7 +130,9 @@ describe("Validator", () => {
             const andPromise = andValidator.check("404");
 
             expect(andPromise.then).toBeDefined();
-            expect(await andPromise).toEqual(["user does not exists"]);
+            expect(await andPromise).toEqual([
+                { message: "user does not exists", value: "404" },
+            ]);
 
             const orValidator = isEmpty.or(isPresentInDb);
 
@@ -125,8 +140,8 @@ describe("Validator", () => {
 
             expect(orPromise.then).toBeDefined();
             expect(await orPromise).toEqual([
-                "value is optional",
-                "user does not exists",
+                { message: "value is optional", value: "404" },
+                { message: "user does not exists", value: "404" },
             ]);
         });
     });

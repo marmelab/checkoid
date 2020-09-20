@@ -13,10 +13,7 @@ const arrayOf = (validator) =>
                     .beforeHook(() => item)
                     .format((message) => addKeyToMessage(key)(message, values))
             )
-            .reduce(
-                and,
-                array.format((message, value) => ({ message, value }))
-            )
+            .reduce(and, array)
     );
 
 module.exports = {
