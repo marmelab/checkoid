@@ -1,5 +1,5 @@
 // Valid will hold no value
-const Valid = () => ({
+export const Valid = () => ({
     isValid: true,
     and: (other) => {
         if (other.fork) {
@@ -23,7 +23,7 @@ const Valid = () => ({
 exports.Valid = Valid;
 
 // Invalid will concat other invalid value to its value
-const Invalid = (x) => ({
+export const Invalid = (x) => ({
     x,
     isValid: false,
     and: (other) => {
@@ -45,7 +45,7 @@ const Invalid = (x) => ({
 });
 
 // Async validation that will resolve to a Valid or Invalid one
-const Async = (fork) => ({
+export const Async = (fork) => ({
     and: (other) =>
         Async((reject, resolve) =>
             fork(reject, (result1) => {
@@ -77,7 +77,7 @@ Async.of = (a) => Async((_, resolve) => resolve(a));
 Async.valid = () => Async((_, resolve) => resolve(Valid()));
 Async.invalid = (a) => Async((_, resolve) => resolve(Invalid(a)));
 
-const lift = (fn) => (value) => {
+export const lift = (fn) => (value) => {
     const result = fn(value);
     if (result && result.then) {
         throw new Error(
@@ -93,7 +93,7 @@ const lift = (fn) => (value) => {
 };
 
 // Takes a function and wrap its result in an Async data type
-const asyncLift = (fn) => (value) =>
+export const asyncLift = (fn) => (value) =>
     Async((reject, resolve) => {
         try {
             // Promise.resolve will convert the function result to a promise if it is not
@@ -106,4 +106,4 @@ const asyncLift = (fn) => (value) =>
         }
     });
 
-module.exports = { Valid, Invalid, Async, lift, asyncLift };
+// module.exports = { Valid, Invalid, Async, lift, asyncLift };

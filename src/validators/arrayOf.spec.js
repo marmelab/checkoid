@@ -1,7 +1,7 @@
-const { arrayOf } = require("./array");
-const { shape } = require("./object");
-const { validator, asyncValidator } = require("../Validator");
-const { match } = require("./string");
+import { arrayOf } from "./array";
+import { shape } from "./object";
+import { validator, asyncValidator } from "../Validator";
+import { match } from "./string";
 
 const isEmail = match(/@/).format(() => `value must be an email`);
 

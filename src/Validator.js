@@ -1,6 +1,6 @@
-const { asyncLift, lift } = require("./Validation");
+import { asyncLift, lift } from "./Validation";
 
-const Validator = (run) => ({
+export const Validator = (run) => ({
     run,
     and: (other) => Validator((x) => run(x).and(other.run(x))),
     or: (other) => Validator((x) => run(x).or(other.run(x))),
@@ -24,17 +24,11 @@ const Validator = (run) => ({
 
 Validator.getEntry = () => Validator((x) => x);
 
-const asyncValidator = (fn) =>
+export const asyncValidator = (fn) =>
     Validator(asyncLift(fn)).afterHook((message, value) => ({
         message,
         value,
     }));
 
-const validator = (fn) =>
+export const validator = (fn) =>
     Validator(lift(fn)).afterHook((message, value) => ({ message, value }));
-
-module.exports = {
-    Validator,
-    validator,
-    asyncValidator,
-};

@@ -1,7 +1,7 @@
-exports.and = (validator1, validator2) => validator1.and(validator2);
+export const and = (validator1, validator2) => validator1.and(validator2);
 
-const path = (keys, obj) => keys.reduce((acc, key) => acc && acc[key], obj);
-exports.path;
+export const path = (keys, obj) =>
+    keys.reduce((acc, key) => acc && acc[key], obj);
 
 const isDefined = (value) => {
     return typeof value !== "undefined";
@@ -17,7 +17,7 @@ const normalizeMessage = (message) => {
     return message;
 };
 
-exports.addKeyToMessage = (key) => (msg, entry) => {
+export const addKeyToMessage = (key) => (msg, entry) => {
     const message = normalizeMessage(msg);
     const newKey = keysToPath(key, message.key);
 

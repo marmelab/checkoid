@@ -1,7 +1,7 @@
-const { shape } = require("./object");
-const { validator, asyncValidator } = require("../Validator");
-const { hasLengthGt } = require("./length");
-const { match } = require("./string");
+import { shape } from "./object";
+import { validator, asyncValidator } from "../Validator";
+import { hasLengthGt } from "./length";
+import { match } from "./string";
 
 const isPresent = validator((value) => {
     if (!!value) {

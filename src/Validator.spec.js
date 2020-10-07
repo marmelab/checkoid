@@ -1,5 +1,5 @@
-const { validator, asyncValidator } = require("./Validator");
-const { match } = require("./validators/string");
+import { validator, asyncValidator } from "./Validator";
+import { match } from "./validators/string";
 
 const isEmpty = validator((value) => {
     if (!!value) {
