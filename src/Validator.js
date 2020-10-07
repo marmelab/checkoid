@@ -6,12 +6,17 @@ const Validator = (run) => ({
     or: (other) => Validator((x) => run(x).or(other.run(x))),
     // also known as contraMap
     beforeHook: (fn) => Validator((x) => run(fn(x))),
-    format: (fn) =>
+    afterHook: (fn) =>
         Validator(run).chain((x) =>
             Validator.getEntry().map((entry) =>
                 x.format((message) => fn(message, entry))
             )
         ),
+    format: (fn) =>
+        Validator(run).afterHook((result) => ({
+            ...result,
+            message: fn(result),
+        })),
     map: (fn) => Validator((x) => fn(run(x))),
     chain: (fn) => Validator((x) => fn(run(x)).run(x)),
     check: (x) => run(x).getResult(),
@@ -20,10 +25,13 @@ const Validator = (run) => ({
 Validator.getEntry = () => Validator((x) => x);
 
 const asyncValidator = (fn) =>
-    Validator(asyncLift(fn)).format((message, value) => ({ message, value }));
+    Validator(asyncLift(fn)).afterHook((message, value) => ({
+        message,
+        value,
+    }));
 
 const validator = (fn) =>
-    Validator(lift(fn)).format((message, value) => ({ message, value }));
+    Validator(lift(fn)).afterHook((message, value) => ({ message, value }));
 
 module.exports = {
     Validator,

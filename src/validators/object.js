@@ -30,7 +30,7 @@ const shape = (spec, exact) => {
         .map((key) =>
             spec[key]
                 .beforeHook((v) => v && v[key])
-                .format(addKeyToMessage(key))
+                .afterHook(addKeyToMessage(key))
         )
         .reduce(and, isObjectValidator);
 };

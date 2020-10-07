@@ -11,7 +11,9 @@ const arrayOf = (validator) =>
             .map((item, key) =>
                 validator
                     .beforeHook(() => item)
-                    .format((message) => addKeyToMessage(key)(message, values))
+                    .afterHook((message) =>
+                        addKeyToMessage(key)(message, values)
+                    )
             )
             .reduce(and, array)
     );
