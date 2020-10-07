@@ -7,7 +7,7 @@ You can create simple validator:
 Simply pass a function, that either return a value for an error, or nothing if the value is valid.
 
 ```js
-const { validator } = require('checkoid');
+import { validator } = from 'checkoid';
 
 const isEmail = validator((value) => {
     if (/@/.test(value)) {
@@ -69,7 +69,7 @@ Additionally you can use checkoid own validator for boolean, string, number, lis
 You can validate object too
 
 ```js
-const { shape } = require('checkoid');
+import { shape } = from 'checkoid';
 
 const isGreaterThan = length => validator(value => {
     if (value && value.length <= length) {
@@ -93,7 +93,7 @@ validateUser.check('Hi I am John a valid user')
 Or array
 
 ```js
-const { arrayOf } = require('checkoid');
+import { arrayOf } from 'checkoid';
 
 // listValidator take any validator and apply it to a list of value
 const isEmailList = arrayOf(isEmail);
@@ -108,6 +108,7 @@ isEmailList.check('I am an email list'); // [{ message: 'value must be an array'
 Or array of object
 
 ```js
+import { arrayOf } from 'checkoid';
 const isUserList = arrayOf(validateUser);
 
 isUserList.check([]); // undefined
@@ -131,7 +132,7 @@ In short all validator can be combined together, and you will always get back a 
 It is also possible to create asyncValidator
 
 ```js
-const { asyncValidator } = require('checkoid');
+import { asyncValidator } = from 'checkoid';
 
 const doesUserIdExists = asyncValidator(async value => {
     const user = await fetchUser(value);
@@ -170,7 +171,7 @@ Function to create a validator holding an async function. It takes a simple vali
 
 
 ```js
-const { asyncValidator } = require('checkoid');
+import { asyncValidator } from 'checkoid';
 
 const doesUserIdExists = asyncValidator(async value => {
     const user = await fetchUser(value);
@@ -271,7 +272,8 @@ Takes a function that will be applyed to the tested value before the validation 
 This function returns a new validator.
 
 ```js
-const isLongerThan8 = isLengthGt(8).beforeHook(value => value.trim());
+import { hasLengthGt } from 'checkoid';
+const isLongerThan8 = hasLengthGt(8).beforeHook(value => value.trim());
 
 isLongerThan8.check('   hey     ');
 // [{ message: 'value must have a length greater than 8', value: 'hey' }]
@@ -309,6 +311,7 @@ Checkoid provides the following validator factory function that returns validato
 Take a minimum value and return a validator that check if value is greater than given the given minimum value
 
 ```js
+import { isGt } from 'checkoid';
 const isGreaterThanFive = isGt(5);
 isGreaterThanFive.check(6); // undefined
 isGreaterThanFive.check(1); // [{ message: 'value must be greater than 5', value: 1 }]
@@ -318,6 +321,7 @@ isGreaterThanFive.check(1); // [{ message: 'value must be greater than 5', value
 Take a minimum value and return a validator that check if value is greater or equal than given the given minimum value
 
 ```js
+import { isGte } from 'checkoid';
 const isAtLeastFive = isGte(5);
 isAtLeastFive.check(6); // undefined
 isAtLeastFive.check(1); // [{ message: 'value must be at least 5', value: 1 }]
@@ -327,6 +331,7 @@ isAtLeastFive.check(1); // [{ message: 'value must be at least 5', value: 1 }]
 Take a maximum value and return a validator that check if value is less than given the given maximum value
 
 ```js
+import { isLt } from 'checkoid';
 const isLessThanFive = isLt(5);
 isLessThanFive.check(1); // undefined
 isLessThanFive.check(6); // [{ message: 'value must be less than 5', value: 6 }]
@@ -336,6 +341,7 @@ isLessThanFive.check(6); // [{ message: 'value must be less than 5', value: 6 }]
 Take a maximum value and return a validator that check if value is less or equal to given the given maximum value
 
 ```js
+import { isLte } from 'checkoid';
 const isLessThanFive = isLte(5);
 isLessThanFive.check(1); // undefined
 isLessThanFive.check(6); // [{ message: 'value must be at most 5', value: 6 }]
@@ -345,6 +351,7 @@ isLessThanFive.check(6); // [{ message: 'value must be at most 5', value: 6 }]
 Take a regex and return a validator that check if checked value match it
 
 ```js
+import { match } from 'checkoid';
 const isEMail = match(/@/);
 
 isEmail.check('test@gmail.com'); // undefined
@@ -356,6 +363,7 @@ isEmail.check('whatever');
 Take a number and return a validator that check its value as a length of the given number.
 
 ```js
+import { hasLengthOf } from 'checkoid';
 const hasLengthOfThree = hasLengthOf(3);
 hasLengthOfThree.check([1, 2, 3]); // undefined
 hasLengthOfThree.check([]); // [{ message: 'value must have a length of 3', value: [] }]
@@ -365,6 +373,7 @@ hasLengthOfThree.check([]); // [{ message: 'value must have a length of 3', valu
 Take a number and return a validator that check its value as a length greater than the given number.
 
 ```js
+import { hasLengthGt } from 'checkoid';
 const isLongerThanThree = hasLengthGt(3);
 isLongerThanThree.check([1, 2, 3, 4]); // undefined
 isLongerThanThree.check([1, 2, 3]); // [{ message: 'value must have a length greater than 3', value: [1, 2, 3] }]
@@ -374,6 +383,7 @@ isLongerThanThree.check([1, 2, 3]); // [{ message: 'value must have a length gre
 Take a number and return a validator that check its value as a length greater or equal to the given number.
 
 ```js
+import { hasLengthGte } from 'checkoid';
 const hasLengthGteThree = hasLengthGte(3);
 hasLengthGteThree.check([1, 2, 3, 4]); // undefined
 hasLengthGteThree.check([1, 2, 3]); // undefined
@@ -383,6 +393,7 @@ hasLengthGteThree.check([1, 2]); // [{ message: 'value must have a length of at 
 Take a number and return a validator that check its value as a length smaller than the given number.
 
 ```js
+import { hasLengthLt } from 'checkoid';
 const isShorterThanThree = hasLengthLt(3);
 isShorterThanThree.check([1, 2]); // undefined
 isShorterThanThree.check([1, 2, 3, 4]); // [{ message: 'value must have a length less than 3', value: [1, 2, 3, 4] }]
@@ -392,6 +403,7 @@ isShorterThanThree.check([1, 2, 3, 4]); // [{ message: 'value must have a length
 Take a number and return a validator that check its value as a length smaller or equal to the given number.
 
 ```js
+import { hasLengthLte } from 'checkoid';
 const hasLengthLteThree = hasLengthLte(3);
 hasLengthLteThree.check([1, 2]); // undefined
 hasLengthLteThree.check([1, 2, 3]); // undefined
@@ -402,6 +414,7 @@ hasLengthLteThree.check([1, 2, 3, 4]); // [{ message: 'value must have a length 
 Take a validator and return a new validator that apply it to every value in a given array.
 
 ```js
+import { arrayOf } from 'checkoid';
 const isArrayOfNumber = arrayOf(isNumber);
 isArrayOfNumber.check([1, 2, 3]); // undefined
 isArrayOfNumber.check([1, "deux", 3]); 
@@ -427,6 +440,7 @@ Take a spec object (an object with key / validator pair) and return a validator 
 It also check that the passed value is an object
 
 ```js
+import { shame, match, hasLengthGt } from 'checkoid';
 const isEmail = match(/@/);
 
 const validateUser = shape({
@@ -445,6 +459,7 @@ shape take also a exact boolean as second argument. whe set to true, shape will 
 
 
 ```js
+import { shape } from 'checkoid';
 const validateUser = shape({
     email: isEmail,
     password: hasLengthGt(8),
