@@ -34,9 +34,9 @@ And then combine them with `and`
 
 ```js
 const isEmailNotFromGMail = isEMail.and(isNotGmail);
-isEmailNotFromGMail.check('whatever'); 
+isEmailNotFromGMail.check('whatever');
 // [
-//    { message: 'value must be an email', value: 'whatever' }, 
+//    { message: 'value must be an email', value: 'whatever' },
 //    { message: 'value must not be a gmail adress', value: 'test@gmail.com' }
 // ]
 isEmailNotFromGMail.check('test@gmail.com'); 
@@ -158,11 +158,34 @@ Simply as soon an asyncValidator get combined with other syncValidator, the resu
 Function to create a validator. It takes a simple validation function that take a value and returns either undefined when the value is valid or an invalid message when the value is not.
 
 ```js
+import { validator } from 'checkoid';
+const isEqual10 = validator(value => value === 10 ? undefined : 'value must be 10');
+isEqual10.check(10) // undefined
+isEqual10.check(5) // [{ message: 'value must be 10', value: 5 }]
 ```
 
 ### asyncValidator
 
 Function to create a validator holding an async function. It takes a simple validation async function that take a value and returns a promise holding either undefined when the value is valid or an invalid message when the value is not.
+
+
+```js
+const { asyncValidator } = require('checkoid');
+
+const doesUserIdExists = asyncValidator(async value => {
+    const user = await fetchUser(value);
+    if (user) {
+        return;
+    }
+
+    return 'There is no user with this id';
+});
+
+// with an async validator the check method return a promise
+await doesUserIdExists.check('badId');
+// [{ message: 'There is no user with this id', value: 'badId' }]
+await doesUserIdExists.check('goodId'); // undefined'
+```
 
 ### The Validator object
 
@@ -173,6 +196,8 @@ The validator object possess the following methods
 Take a value and either returns undefined if it pass the validation or an array of object describing the issues otherwise.
 The array contains an object for each validation function that returned an issue.
 
+If the validator is async, the result will get wrapped inside a promise
+
 It possess the following preoperty :
 
 - message: The message returned by the validation function
@@ -182,8 +207,50 @@ It possess the following preoperty :
 #### and
 Take another validator and return a new validator that apply the validations of both validator. All error will get combined
 
+```js
+import { isGt, isNumber } from 'checkoid';
+const isGt3 = isGt(3).and(isNumber);
+isGt3.check(4); // undefined
+isGt3.check(1); 
+// [
+//    { message: 'value must be greater than 3', value: 1 },
+// ]
+isGt3.check('four); 
+// [
+//    { message: 'value must be greater than 3', value: 'four' },
+//    { message: 'value must be a number', value: 'four' },
+// ]
+```
+
 #### or
 Take another validator and return a new validator that apply the validations of both validator. But will only return the errors from the second, if the first return no error. Like a logical or.
+
+
+```js
+import { validator, match } from 'checkoid';
+
+const isEmail = validator((value) => {
+    if (/@/.test(value)) {
+        return;
+    }
+    return 'value must be an email';
+});
+const isEmpty = validator((value) => {
+    if (!!value) {
+        return 'value is not empty';
+    }
+});
+
+const isOptionalEmail = isEmail.or(isEmpty);
+
+isOptionalEmail.check(''); // undefined
+isOptionalEmail.check('test@gmail.com'); // undefined
+isOptionalEmail.check('invalid mail');
+// [
+//     { message: 'value must be an email', value: 'invalid mail' },
+//     { message: 'value is not empty', value: 'invalid mail' }
+// ]
+```
 
 #### format
 Takes a function that receives all error object for the given validator and allow to return a new message. 
