@@ -6,7 +6,7 @@ const isEmpty = validator((value) => {
         return `value is optional`;
     }
 });
-const isEmail = match(/@/, `value must be an email`);
+const isEmail = match(/@/).format(() => `value must be an email`);
 const isPresent = validator((value) => {
     if (!!value) {
         return;

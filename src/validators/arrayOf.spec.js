@@ -1,9 +1,9 @@
 const { arrayOf } = require("./array");
-const { object } = require("./");
+const { shape } = require("./object");
 const { validator, asyncValidator } = require("../Validator");
 const { match } = require("./string");
 
-const isEmail = match(/@/, `value must be an email`);
+const isEmail = match(/@/).format(() => `value must be an email`);
 
 const isPresent = validator((value) => {
     if (!!value) {
@@ -62,7 +62,7 @@ describe("arrayOf", () => {
     });
 
     it("should allow to apply object validation to a list of value", () => {
-        const userValidators = object.shape({
+        const userValidators = shape({
             name: isPresent,
             email: isEmail,
         });
@@ -101,9 +101,9 @@ describe("arrayOf", () => {
     });
 
     it("should allow to be nested with validate Object", () => {
-        const validators = object.shape({
+        const validators = shape({
             users: arrayOf(
-                object.shape({
+                shape({
                     name: isPresent,
                     email: isEmail,
                 })

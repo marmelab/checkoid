@@ -1,7 +1,7 @@
 const { validator, Validator } = require("../Validator");
 const { and, addKeyToMessage } = require("../utils");
 
-const array = validator((value) =>
+const isArray = validator((value) =>
     Array.isArray(value) ? undefined : "value must be an array"
 );
 
@@ -15,10 +15,10 @@ const arrayOf = (validator) =>
                         addKeyToMessage(key)(message, values)
                     )
             )
-            .reduce(and, array)
+            .reduce(and, isArray)
     );
 
 module.exports = {
-    array,
+    isArray,
     arrayOf,
 };

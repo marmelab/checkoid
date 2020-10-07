@@ -1,6 +1,6 @@
 const { shape } = require("./object");
 const { validator, asyncValidator } = require("../Validator");
-const { lengthGt } = require("./length");
+const { hasLengthGt } = require("./length");
 const { match } = require("./string");
 
 const isPresent = validator((value) => {
@@ -10,14 +10,14 @@ const isPresent = validator((value) => {
     return `value must be present`;
 });
 
-const isLongerThanTree = lengthGt(3);
+const isLongerThanTree = hasLengthGt(3);
 
 const isAbsent = validator((value) => {
     if (!!value) {
         return `value can be absent`;
     }
 });
-const isEmail = match(/@/, `value must be an email`);
+const isEmail = match(/@/).format(() => `value must be an email`);
 
 const isPresentInDb = asyncValidator(async (id) => {
     await new Promise((resolve) => {

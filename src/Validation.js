@@ -1,4 +1,4 @@
-// Valid will keep it's original value
+// Valid will hold no value
 const Valid = () => ({
     isValid: true,
     and: (other) => {

@@ -1,12 +1,10 @@
 const { validator } = require("../Validator");
 
-exports.string = validator((value) =>
+exports.isString = validator((value) =>
     typeof value === "string" ? undefined : "value must be a string"
 );
 
-exports.match = (pattern, message) =>
+exports.match = (pattern) =>
     validator((value) =>
-        pattern.test(value)
-            ? undefined
-            : message || `value must match pattern ${pattern}`
+        pattern.test(value) ? undefined : `value must match pattern ${pattern}`
     );

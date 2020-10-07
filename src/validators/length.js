@@ -1,34 +1,34 @@
 const { validator } = require("../Validator");
 
-const length = (x) =>
+const hasLengthOf = (x) =>
     validator((value) =>
         value && value.length === x
             ? undefined
             : `value must have a length of ${x}`
     );
 
-const lengthGt = (min) =>
+const hasLengthGt = (min) =>
     validator((value) =>
         value && value.length > min
             ? undefined
             : `value must have a length greater than ${min}`
     );
 
-const lengthGte = (min) =>
+const hasLengthGte = (min) =>
     validator((value) =>
         value && value.length >= min
             ? undefined
             : `value must have a length of at least ${min}`
     );
 
-const lengthLt = (max) =>
+const hasLengthLt = (max) =>
     validator((value) =>
         value && value.length < max
             ? undefined
             : `value must have a length less than ${max}`
     );
 
-const lengthLte = (max) =>
+const hasLengthLte = (max) =>
     validator((value) =>
         value && value.length <= max
             ? undefined
@@ -36,9 +36,9 @@ const lengthLte = (max) =>
     );
 
 module.exports = {
-    length,
-    lengthGt,
-    lengthGte,
-    lengthLt,
-    lengthLte,
+    hasLengthOf,
+    hasLengthGt,
+    hasLengthGte,
+    hasLengthLt,
+    hasLengthLte,
 };
