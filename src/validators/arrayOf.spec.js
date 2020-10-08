@@ -1,19 +1,15 @@
-const listValidator = require("./listValidator");
-const objectValidator = require("./objectValidator");
-const Validation = require("./Validation");
-const { validator, asyncValidator } = require("./Validator");
+const { arrayOf } = require("./array");
+const { shape } = require("./object");
+const { validator, asyncValidator } = require("../Validator");
+const { match } = require("./string");
 
-const isEmail = validator((value) => {
-    if (/@/.test(value)) {
-        return Validation.Valid(value);
-    }
-    return Validation.Invalid([`value must be an email`]);
-});
+const isEmail = match(/@/).format(() => `value must be an email`);
+
 const isPresent = validator((value) => {
     if (!!value) {
-        return Validation.Valid(value);
+        return;
     }
-    return Validation.Invalid([`value must be present`]);
+    return `value must be present`;
 });
 
 const isPresentInDb = asyncValidator(async (id) => {
@@ -21,16 +17,14 @@ const isPresentInDb = asyncValidator(async (id) => {
         setTimeout(resolve, 1);
     });
     if (!id || id === 404) {
-        return Validation.Invalid([`user does not exists`]);
+        return `user does not exists`;
     }
-
-    return Validation.Valid(id);
 });
 
-describe("listValidator", () => {
+describe("arrayOf", () => {
     it("should allow to apply validation to a list of value", () => {
         const emailValidator = isPresent.and(isEmail);
-        const res = listValidator(emailValidator).check([
+        const res = arrayOf(emailValidator).check([
             "test@email.com",
             "not an email",
         ]);
@@ -44,7 +38,7 @@ describe("listValidator", () => {
     });
 
     it("should allow to apply asyncValidation to a list of value", async () => {
-        const areIdsPresentIndDb = listValidator(isPresentInDb);
+        const areIdsPresentIndDb = arrayOf(isPresentInDb);
         const res = areIdsPresentIndDb.check([201, 404, 200]);
         expect(res.then).toBeDefined();
         expect(await res).toEqual([
@@ -58,9 +52,7 @@ describe("listValidator", () => {
 
     it("should return appropriate error if value is no array", () => {
         const emailValidator = isPresent.and(isEmail);
-        const res = listValidator(emailValidator).check(
-            "Hi, trust me I am a list"
-        );
+        const res = arrayOf(emailValidator).check("Hi, trust me I am a list");
         expect(res).toEqual([
             {
                 message: "value must be an array",
@@ -70,11 +62,11 @@ describe("listValidator", () => {
     });
 
     it("should allow to apply object validation to a list of value", () => {
-        const userValidators = objectValidator({
+        const userValidators = shape({
             name: isPresent,
             email: isEmail,
         });
-        const res = listValidator(userValidators).check([
+        const res = arrayOf(userValidators).check([
             { name: "toto", email: "test@email.com" },
             { name: "toto", email: "not an email" },
         ]);
@@ -89,8 +81,8 @@ describe("listValidator", () => {
 
     it("should allow to apply list validation to a list of list", () => {
         const emailValidator = isPresent.and(isEmail);
-        const emailListValidators = listValidator(emailValidator);
-        const res = listValidator(emailListValidators).check([
+        const emailarrayOfs = arrayOf(emailValidator);
+        const res = arrayOf(emailarrayOfs).check([
             ["test@email.com", "not an email"],
             ["not an email"],
         ]);
@@ -109,9 +101,9 @@ describe("listValidator", () => {
     });
 
     it("should allow to be nested with validate Object", () => {
-        const validators = objectValidator({
-            users: listValidator(
-                objectValidator({
+        const validators = shape({
+            users: arrayOf(
+                shape({
                     name: isPresent,
                     email: isEmail,
                 })
@@ -127,7 +119,7 @@ describe("listValidator", () => {
         expect(res).toEqual([
             {
                 key: ["users", 0],
-                message: "value is not an object",
+                message: "value must be an object",
                 value: "toto",
             },
             {

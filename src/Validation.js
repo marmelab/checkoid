@@ -1,24 +1,23 @@
-// Valid will keep it's original value
-const Valid = (x) => ({
-    x,
+// Valid will hold no value
+const Valid = () => ({
     isValid: true,
     and: (other) => {
         if (other.fork) {
-            return Async.of(Valid(x)).and(other);
+            return Async.of(Valid()).and(other);
         }
 
-        return other.isValid ? Valid(x) : other;
+        return other.isValid ? Valid() : other;
     },
     or: (other) => {
         // If other is Async convert Valid to Async(Valid)
         if (other.fork) {
-            return Async.of(Valid(x));
+            return Async.of(Valid());
         }
-        return Valid(x);
+        return Valid();
     }, // no matter the other we keep the valid value
-    format: (fn) => Valid(x),
-    fold: (onValid, onInvalid) => onValid(x),
-    getResult: () => x,
+    format: (fn) => Valid(),
+    fold: (onValid, onInvalid) => onValid(),
+    getResult: () => undefined,
 });
 
 exports.Valid = Valid;
@@ -75,16 +74,31 @@ const Async = (fork) => ({
         ).then((validation) => validation.getResult()),
 });
 Async.of = (a) => Async((_, resolve) => resolve(a));
-Async.valid = (a) => Async((_, resolve) => resolve(Valid(a)));
+Async.valid = () => Async((_, resolve) => resolve(Valid()));
 Async.invalid = (a) => Async((_, resolve) => resolve(Invalid(a)));
 
+const lift = (fn) => (value) => {
+    const result = fn(value);
+    if (result && result.then) {
+        throw new Error(
+            "lift only accept synchronous function, use asyncLift instead"
+        );
+    }
+
+    if (result) {
+        return Invalid([result]);
+    }
+
+    return Valid(value);
+};
+
 // Takes a function and wrap its result in an Async data type
-Async.lift = (fn) => (...args) =>
+const asyncLift = (fn) => (value) =>
     Async((reject, resolve) => {
         try {
             // Promise.resolve will convert the function result to a promise if it is not
-            Promise.resolve(fn(...args))
-                .then(resolve)
+            Promise.resolve(fn(value))
+                .then((result) => resolve(result ? Invalid([result]) : Valid()))
                 .catch(reject);
         } catch (error) {
             // catch eventual synchronous error
@@ -92,4 +106,4 @@ Async.lift = (fn) => (...args) =>
         }
     });
 
-module.exports = { Valid, Invalid, Async };
+module.exports = { Valid, Invalid, Async, lift, asyncLift };

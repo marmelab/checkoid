@@ -6,7 +6,7 @@ describe("Validation", () => {
         it("Valid and Valid should keep the first Valid value", () => {
             const res = Valid("valid").and(Valid("whatever"));
             expect(res.isValid).toBe(true);
-            expect(res.getResult()).toBe("valid");
+            expect(res.getResult()).toBeUndefined();
         });
 
         it("Valid and Invalid should keep the Invalid value", () => {
@@ -22,7 +22,7 @@ describe("Validation", () => {
             const valid = await res.toPromise();
             expect(valid.isValid).toBe(true);
 
-            expect(await res.getResult()).toBe("valid");
+            expect(await res.getResult()).toBeUndefined();
         });
 
         it("Valid and Async(InValid) should return an Async(Invalid)", async () => {
@@ -74,7 +74,7 @@ describe("Validation", () => {
             const valid = await res.toPromise();
             expect(valid.isValid).toBe(true);
 
-            expect(await res.getResult()).toBe("valid");
+            expect(await res.getResult()).toBeUndefined();
         });
 
         it("Async(Valid) and Invalid should return Async(Invalid)", async () => {
@@ -95,7 +95,7 @@ describe("Validation", () => {
 
             expect(valid.isValid).toBe(true);
 
-            expect(await res.getResult()).toBe("valid");
+            expect(await res.getResult()).toBeUndefined();
         });
 
         it("Async(Valid) and Async(InValid) should return an Async(Invalid)", async () => {
@@ -155,13 +155,13 @@ describe("Validation", () => {
         it("Valid or Valid should keep the first Valid value", () => {
             const res = Valid("valid").or(Valid("whatever"));
             expect(res.isValid).toBe(true);
-            expect(res.getResult()).toBe("valid");
+            expect(res.getResult()).toBeUndefined();
         });
 
         it("Valid or InValid should keep the Valid value", () => {
             const res = Valid("valid").or(Invalid(["invalid"]));
             expect(res.isValid).toBe(true);
-            expect(res.getResult()).toBe("valid");
+            expect(res.getResult()).toBeUndefined();
         });
 
         it("Valid or Async(Valid) return Async(Valid)", async () => {
@@ -171,7 +171,7 @@ describe("Validation", () => {
             const valid = await res.toPromise();
             expect(valid.isValid).toBe(true);
 
-            expect(await res.getResult()).toBe("valid");
+            expect(await res.getResult()).toBeUndefined();
         });
 
         it("Valid or Async(InValid) should return Async(Valid)", async () => {
@@ -181,13 +181,13 @@ describe("Validation", () => {
             const valid = await res.toPromise();
             expect(valid.isValid).toBe(true);
 
-            expect(await res.getResult()).toBe("valid");
+            expect(await res.getResult()).toBeUndefined();
         });
 
         it("Invalid or Valid should keep the Valid value", () => {
             const res = Invalid(["invalid"]).or(Valid("valid"));
             expect(res.isValid).toBe(true);
-            expect(res.getResult()).toBe("valid");
+            expect(res.getResult()).toBeUndefined();
         });
 
         it("Invalid or Invalid should concat the Invalid value", () => {
@@ -203,7 +203,7 @@ describe("Validation", () => {
             const valid = await res.toPromise();
             expect(valid.isValid).toBe(true);
 
-            expect(await res.getResult()).toBe("valid");
+            expect(await res.getResult()).toBeUndefined();
         });
 
         it("Invalid or Async(InValid) should return Async(Valid)", async () => {
@@ -223,7 +223,7 @@ describe("Validation", () => {
             const valid = await res.toPromise();
             expect(valid.isValid).toBe(true);
 
-            expect(await res.getResult()).toBe("valid");
+            expect(await res.getResult()).toBeUndefined();
         });
 
         it("Async(Valid) or InValid should Return Async(Valid)", async () => {
@@ -233,7 +233,7 @@ describe("Validation", () => {
             const valid = await res.toPromise();
             expect(valid.isValid).toBe(true);
 
-            expect(await res.getResult()).toBe("valid");
+            expect(await res.getResult()).toBeUndefined();
         });
 
         it("Async(Valid) or Async(Valid) return Async(Valid)", async () => {
@@ -243,7 +243,7 @@ describe("Validation", () => {
             const valid = await res.toPromise();
             expect(valid.isValid).toBe(true);
 
-            expect(await res.getResult()).toBe("valid");
+            expect(await res.getResult()).toBeUndefined();
         });
 
         it("Async(Valid) or Async(InValid) should return Async(Valid)", async () => {
@@ -253,7 +253,7 @@ describe("Validation", () => {
             const valid = await res.toPromise();
             expect(valid.isValid).toBe(true);
 
-            expect(await res.getResult()).toBe("valid");
+            expect(await res.getResult()).toBeUndefined();
         });
 
         it("Async(Invalid) or Valid should return Async(Value)", async () => {
@@ -263,7 +263,7 @@ describe("Validation", () => {
             const valid = await res.toPromise();
             expect(valid.isValid).toBe(true);
 
-            expect(await res.getResult()).toBe("valid");
+            expect(await res.getResult()).toBeUndefined();
         });
 
         it("Async(Invalid) or Invalid should return Async(Invalid)", async () => {
@@ -283,7 +283,7 @@ describe("Validation", () => {
             const valid = await res.toPromise();
             expect(valid.isValid).toBe(true);
 
-            expect(await res.getResult()).toBe("valid");
+            expect(await res.getResult()).toBeUndefined();
         });
 
         it("Async(Invalid) or Async(InValid) should return Async(Valid)", async () => {

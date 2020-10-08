@@ -1,23 +1,17 @@
 const { validator, asyncValidator } = require("./Validator");
-const Validation = require("./Validation");
+const { match } = require("./validators/string");
 
 const isEmpty = validator((value) => {
     if (!!value) {
-        return Validation.Invalid([`value is optional`]);
+        return `value is optional`;
     }
-    return Validation.Valid(value);
 });
-const isEmail = validator((value) => {
-    if (/@/.test(value)) {
-        return Validation.Valid(value);
-    }
-    return Validation.Invalid([`value must be an email`]);
-});
+const isEmail = match(/@/).format(() => `value must be an email`);
 const isPresent = validator((value) => {
     if (!!value) {
-        return Validation.Valid(value);
+        return;
     }
-    return Validation.Invalid([`value must be present`]);
+    return `value must be present`;
 });
 
 describe("Validator", () => {
@@ -25,51 +19,58 @@ describe("Validator", () => {
         it("should allow to run validator returning Validation", () => {
             const validate = validator((value) => {
                 if (/@/.test(value)) {
-                    return Validation.Valid(value);
+                    return;
                 }
-                return Validation.Invalid([`value must be an email`]);
+                return `value must be an email`;
             });
 
             const validValidation = validate.check("some@email.com");
-            expect(validValidation).toBe("some@email.com");
+            expect(validValidation).toBeUndefined();
 
             const invalidValidation = validate.check(
                 "I will type whatever I want"
             );
-            expect(invalidValidation).toEqual(["value must be an email"]);
+            expect(invalidValidation).toEqual([
+                {
+                    message: "value must be an email",
+                    value: "I will type whatever I want",
+                },
+            ]);
         });
 
         it("should allow to combine validator with and", () => {
             const validValidation = isPresent
                 .and(isEmail)
                 .check("some@email.com");
-            expect(validValidation).toBe("some@email.com");
+            expect(validValidation).toBeUndefined();
 
             const noValueValidation = isPresent.and(isEmail).check("");
             expect(noValueValidation).toEqual([
-                "value must be present",
-                "value must be an email",
+                { message: "value must be present", value: "" },
+                { message: "value must be an email", value: "" },
             ]);
 
             const invalidEmailValidation = isPresent
                 .and(isEmail)
                 .check("whatever");
-            expect(invalidEmailValidation).toEqual(["value must be an email"]);
+            expect(invalidEmailValidation).toEqual([
+                { message: "value must be an email", value: "whatever" },
+            ]);
         });
 
         it("should allow to combine validator with or", () => {
             const emailValidation = isEmail.or(isEmpty).check("some@email.com");
-            expect(emailValidation).toBe("some@email.com");
+            expect(emailValidation).toBeUndefined();
 
             const noValueValidation = isEmail.or(isEmpty).check("");
-            expect(noValueValidation).toBe("");
+            expect(noValueValidation).toBeUndefined();
 
             const invalidEmailValidation = isEmail
                 .or(isEmpty)
                 .check("whatever");
             expect(invalidEmailValidation).toEqual([
-                "value must be an email",
-                "value is optional",
+                { message: "value must be an email", value: "whatever" },
+                { message: "value is optional", value: "whatever" },
             ]);
         });
     });
@@ -80,24 +81,26 @@ describe("Validator", () => {
                 setTimeout(resolve, 1);
             });
             if (id === "404") {
-                return Validation.Invalid([`user does not exists`]);
+                return `user does not exists`;
             }
-
-            return Validation.Valid(id);
         });
         it("should support async validator function", async () => {
             const validValidation = await isPresentInDb.check("200");
-            expect(validValidation).toEqual("200");
+            expect(validValidation).toBeUndefined();
 
             const invalidValidation = await isPresent
                 .and(isPresentInDb)
                 .check("404");
-            expect(invalidValidation).toEqual(["user does not exists"]);
+            expect(invalidValidation).toEqual([
+                { message: "user does not exists", value: "404" },
+            ]);
 
             const invalidValidation2 = await isPresent
                 .and(isPresentInDb)
                 .check("");
-            expect(invalidValidation2).toEqual(["value must be present"]);
+            expect(invalidValidation2).toEqual([
+                { message: "value must be present", value: "" },
+            ]);
         });
 
         it("should return a Validator.Async when concatenated with a Validator.sync", async () => {
@@ -106,7 +109,9 @@ describe("Validator", () => {
             const andPromise = andValidator.check("404");
 
             expect(andPromise.then).toBeDefined();
-            expect(await andPromise).toEqual(["user does not exists"]);
+            expect(await andPromise).toEqual([
+                { message: "user does not exists", value: "404" },
+            ]);
 
             const orValidator = isPresentInDb.or(isEmpty);
 
@@ -114,8 +119,8 @@ describe("Validator", () => {
 
             expect(orPromise.then).toBeDefined();
             expect(await orPromise).toEqual([
-                "user does not exists",
-                "value is optional",
+                { message: "user does not exists", value: "404" },
+                { message: "value is optional", value: "404" },
             ]);
         });
 
@@ -125,7 +130,9 @@ describe("Validator", () => {
             const andPromise = andValidator.check("404");
 
             expect(andPromise.then).toBeDefined();
-            expect(await andPromise).toEqual(["user does not exists"]);
+            expect(await andPromise).toEqual([
+                { message: "user does not exists", value: "404" },
+            ]);
 
             const orValidator = isEmpty.or(isPresentInDb);
 
@@ -133,8 +140,8 @@ describe("Validator", () => {
 
             expect(orPromise.then).toBeDefined();
             expect(await orPromise).toEqual([
-                "value is optional",
-                "user does not exists",
+                { message: "value is optional", value: "404" },
+                { message: "user does not exists", value: "404" },
             ]);
         });
     });
