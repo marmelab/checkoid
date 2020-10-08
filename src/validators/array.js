@@ -1,11 +1,11 @@
-const { validator, Validator } = require("../Validator");
-const { and, addKeyToMessage } = require("../utils");
+import { validator, Validator } from "../Validator";
+import { and, addKeyToMessage } from "../utils";
 
-const isArray = validator((value) =>
+export const isArray = validator((value) =>
     Array.isArray(value) ? undefined : "value must be an array"
 );
 
-const arrayOf = (validator) =>
+export const arrayOf = (validator) =>
     Validator.getEntry().chain((values) =>
         (Array.isArray(values) ? values : [])
             .map((item, key) =>
@@ -17,8 +17,3 @@ const arrayOf = (validator) =>
             )
             .reduce(and, isArray)
     );
-
-module.exports = {
-    isArray,
-    arrayOf,
-};

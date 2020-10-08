@@ -1,9 +1,6 @@
-const { validator, asyncValidator } = require("./Validator");
-exports.array = require("./validators/array");
-exports.boolean = require("./validators/boolean");
-exports.number = require("./validators/number");
-exports.object = require("./validators/object");
-exports.string = require("./validators/string");
-
-exports.validator = validator;
-exports.asyncValidator = asyncValidator;
+export { validator, asyncValidator } from "./Validator";
+export * from "./validators/array";
+export * from "./validators/boolean";
+export * from "./validators/number";
+export * from "./validators/object";
+export * from "./validators/string";

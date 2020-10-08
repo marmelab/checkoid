@@ -1,5 +1,4 @@
-const Validation = require("./Validation");
-const { Valid, Invalid, Async } = Validation;
+import { Valid, Invalid, Async } from "./Validation";
 
 describe("Validation", () => {
     describe("and", () => {

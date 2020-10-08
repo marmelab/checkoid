@@ -1,11 +1,11 @@
-const { addKeyToMessage, and } = require("../utils");
-const { validator } = require("../Validator");
+import { addKeyToMessage, and } from "../utils";
+import { validator } from "../Validator";
 
-const isObject = validator((value) =>
+export const isObject = validator((value) =>
     typeof value === "object" ? undefined : "value must be an object"
 );
 
-const hasNoExtraneousKeys = (keys) =>
+export const hasNoExtraneousKeys = (keys) =>
     validator((value) => {
         if (typeof value !== "object") {
             return;
@@ -19,9 +19,9 @@ const hasNoExtraneousKeys = (keys) =>
             : undefined;
     });
 
-const isExactObject = (keys) => isObject.and(hasNoExtraneousKeys(keys));
+export const isExactObject = (keys) => isObject.and(hasNoExtraneousKeys(keys));
 
-const shape = (spec, exact) => {
+export const shape = (spec, exact) => {
     const isObjectValidator = exact
         ? isExactObject(Object.keys(spec))
         : isObject;
@@ -33,11 +33,4 @@ const shape = (spec, exact) => {
                 .afterHook(addKeyToMessage(key))
         )
         .reduce(and, isObjectValidator);
-};
-
-module.exports = {
-    isObject,
-    isExactObject,
-    hasNoExtraneousKeys,
-    shape,
 };
