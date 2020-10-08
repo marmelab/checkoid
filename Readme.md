@@ -1,6 +1,6 @@
 ![Tests on Github](https://github.com/marmelab/checkoid/workflows/test/badge.svg) ![Travis (.com)](https://img.shields.io/travis/com/marmelab/checkoid.svg) ![GitHub top language](https://img.shields.io/github/languages/top/marmelab/checkoid.svg) ![GitHub contributors](https://img.shields.io/github/contributors/marmelab/checkoid.svg) ![checkoid.svg](https://img.shields.io/github/license/marmelab/checkoid.svg) ![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)
 
-Checkoid is an experimental validator library using Monoid under the hood to allow to combine validator like you would lego piece.
+Checkoid is an experimental validator library that allows to combine validator like you would lego piece.
 
 ## Usage
 You can create simple validator:
@@ -64,8 +64,6 @@ isOptionalEmail.check('invalid mail');
 // ]
 ```
 
-Additionally you can use checkoid own validator for boolean, string, number, list 
-
 You can validate object too
 
 ```js
@@ -77,7 +75,7 @@ const isGreaterThan = length => validator(value => {
     }
 })
 
-// objectValidator takes an object of other validator and return a validator
+// objectValidator takes an object of other validator and returns a validator
 const validateUser = shape({
     email: isEmail.or(isAbsent),
     password: isGreaterThan(8),
@@ -127,9 +125,9 @@ isUserList.check([
 // ]
 ```
 
-In short all validator can be combined together, and you will always get back a Validator.
+In short all validators can be combined together, and you will always get back a Validator.
 
-It is also possible to create asyncValidator
+It is also possible to create asynchronous Validator
 
 ```js
 import { asyncValidator } = from 'checkoid';
@@ -143,14 +141,14 @@ const doesUserIdExists = asyncValidator(async value => {
     return 'There is no user with this id';
 });
 
-// with an async validator the check method return a promise
+// with an asynchronous validator the check method return a promise
 await doesUserIdExists.check('badId');
 // [{ message: 'There is no user with this id', value: 'badId' }]
 await doesUserIdExists.check('goodId'); // undefined'
 ```
 
-asyncValidators can be combined exactly like syncValidator, they can even be combined with syncValidator. 
-Simply as soon an asyncValidator get combined with other syncValidator, the resultant validator will automatically become async.
+Asynchronous Validators can be combined exactly like synchronous ones. They can even be combined with synchronous Validator.
+Simply as soon as an asynchronous Validator get combined with other synchronous Validator, the resultant validator will automatically become asynchronous.
 
 ## Documentation
 
@@ -167,7 +165,7 @@ isEqual10.check(5) // [{ message: 'value must be 10', value: 5 }]
 
 ### asyncValidator
 
-Function to create a validator holding an async function. It takes a simple validation async function that take a value and returns a promise holding either undefined when the value is valid or an invalid message when the value is not.
+Function to create a validator from an async validation function. It takes a simple validation async function that takes a value and returns a promise holding either undefined when the value is valid or an invalid message when the value is not.
 
 
 ```js
@@ -191,10 +189,10 @@ await doesUserIdExists.check('goodId'); // undefined'
 ### The Validator object
 
 All exported value in checkoid are either Validator or function that returns a Validator.
-The validator object possess the following methods
+The validator object possess the following methods.
 
 #### check
-Take a value and either returns undefined if it pass the validation or an array of object describing the issues otherwise.
+Takes a value and either returns undefined if it pass the validation or an array of object describing the issues otherwise.
 The array contains an object for each validation function that returned an issue.
 
 If the validator is async, the result will get wrapped inside a promise
@@ -202,11 +200,11 @@ If the validator is async, the result will get wrapped inside a promise
 It possess the following preoperty :
 
 - message: The message returned by the validation function
-- value: The value that has been tested. In the case of a shape or arrayOf validator this will be the targeted value and not thewhole object or array.
+- value: The value that has been tested. In the case of a shape or arrayOf validator this will be the targeted nested value and not the whole object or array.
 - key: Optional, the key of the value being tested if applyable
 
 #### and
-Take another validator and return a new validator that apply the validations of both validator. All error will get combined
+Takes another validator and returns a new validator that apply the validations of both validator. All error will get concatenated.
 
 ```js
 import { isGt, isNumber } from 'checkoid';
@@ -224,7 +222,7 @@ isGt3.check('four);
 ```
 
 #### or
-Take another validator and return a new validator that apply the validations of both validator. But will only return the errors from the second, if the first return no error. Like a logical or.
+Takes another validator and returns a new validator that apply the validations of both validator. It will only return the errors if both validator are invalid. If one of the two pass, the error of the other one will get ignored.
 
 
 ```js
@@ -255,8 +253,8 @@ isOptionalEmail.check('invalid mail');
 
 #### format
 Takes a function that receives all error object for the given validator and allow to return a new message. 
-Allowing to customize it.
-This function returns a new validator
+This allows to change the message part of the return value.
+This function returns a new validator.
 
 ```js
 const isEmail = match(/@/).format(({ message, value }) => `value: "${value}" is not a valid email`);
@@ -268,7 +266,7 @@ isEmail.check('whatever');
 ```
 
 #### beforeHook
-Takes a function that will be applyed to the tested value before the validation function. This allows to sanitize the value for example.
+Takes a function that will be applyed to the tested value before the validation function. This allows to sanitize the value.
 This function returns a new validator.
 
 ```js
@@ -293,22 +291,22 @@ Internal function please ignore. If you use this I sure hope you know what you a
 
 
 ### basic validators
-Checkoid provides the following basic validator to check basic type.
+Checkoid provides the following basic validator to check basic type. Thy are stright forward.
 
-isNumber
-isString
-isBoolean
-isObject
-isArray
-isTrue
-isFalse
+- isNumber: check the value is a number
+- isString: check the value is a string
+- isBoolean: check the value is a boolean
+- isObject: check the value is a object
+- isArray: check the value is a array
+- isTrue: check the value is `true`
+- isFalse: check the value is `false`
 
 
 ### validator factory
-Checkoid provides the following validator factory function that returns validator
+Checkoid provides the following validator factory function that returns validator.
 
 #### isGt
-Take a minimum value and return a validator that check if value is greater than given the given minimum value
+Take a minimum value and returns a validator that check if the value is greater than the given minimum value
 
 ```js
 import { isGt } from 'checkoid';
@@ -318,7 +316,7 @@ isGreaterThanFive.check(1); // [{ message: 'value must be greater than 5', value
 ```
 
 #### isGte
-Take a minimum value and return a validator that check if value is greater or equal than given the given minimum value
+Take a minimum value and returns a validator that check if the value is greater or equal than the given minimum value
 
 ```js
 import { isGte } from 'checkoid';
@@ -328,7 +326,7 @@ isAtLeastFive.check(1); // [{ message: 'value must be at least 5', value: 1 }]
 ```
 
 #### isLt
-Take a maximum value and return a validator that check if value is less than given the given maximum value
+Take a maximum value and returns a validator that check if the value is less than the given maximum value
 
 ```js
 import { isLt } from 'checkoid';
@@ -338,7 +336,7 @@ isLessThanFive.check(6); // [{ message: 'value must be less than 5', value: 6 }]
 ```
 
 #### isLte
-Take a maximum value and return a validator that check if value is less or equal to given the given maximum value
+Take a maximum value and returns a validator that check if the value is less or equal to the given maximum value
 
 ```js
 import { isLte } from 'checkoid';
@@ -348,7 +346,7 @@ isLessThanFive.check(6); // [{ message: 'value must be at most 5', value: 6 }]
 ```
 
 #### match
-Take a regex and return a validator that check if checked value match it
+Take a regex and returns a validator that check if the value match it
 
 ```js
 import { match } from 'checkoid';
@@ -360,7 +358,7 @@ isEmail.check('whatever');
 ```
 
 #### hasLengthOf
-Take a number and return a validator that check its value as a length of the given number.
+Take a number and returns a validator that check that the value as a length of the given number.
 
 ```js
 import { hasLengthOf } from 'checkoid';
@@ -370,7 +368,7 @@ hasLengthOfThree.check([]); // [{ message: 'value must have a length of 3', valu
 ```
 
 #### hasLengthGt
-Take a number and return a validator that check its value as a length greater than the given number.
+Take a number and returns a validator who check that the value as a length greater than the given number.
 
 ```js
 import { hasLengthGt } from 'checkoid';
@@ -380,7 +378,7 @@ isLongerThanThree.check([1, 2, 3]); // [{ message: 'value must have a length gre
 ```
 
 #### hasLengthGte
-Take a number and return a validator that check its value as a length greater or equal to the given number.
+Take a number and returns a validator who check that the value as a length greater or equal to the given number.
 
 ```js
 import { hasLengthGte } from 'checkoid';
@@ -390,7 +388,7 @@ hasLengthGteThree.check([1, 2, 3]); // undefined
 hasLengthGteThree.check([1, 2]); // [{ message: 'value must have a length of at least 3', value: [1, 2] }]
 ```
 #### hasLengthLt
-Take a number and return a validator that check its value as a length smaller than the given number.
+Take a number and returns a validator who check that the value as a length smaller than the given number.
 
 ```js
 import { hasLengthLt } from 'checkoid';
@@ -400,7 +398,7 @@ isShorterThanThree.check([1, 2, 3, 4]); // [{ message: 'value must have a length
 ```
 
 #### hasLengthLte
-Take a number and return a validator that check its value as a length smaller or equal to the given number.
+Take a number and returns a validator who check that the value as a length smaller or equal to the given number.
 
 ```js
 import { hasLengthLte } from 'checkoid';
@@ -411,7 +409,7 @@ hasLengthLteThree.check([1, 2, 3, 4]); // [{ message: 'value must have a length 
 ```
 
 #### arrayOf
-Take a validator and return a new validator that apply it to every value in a given array.
+Take a validator and returns a new validator that apply it to every value in a given array.
 
 ```js
 import { arrayOf } from 'checkoid';
@@ -436,7 +434,7 @@ isArrayOfNumber.check(null);
 
 
 #### shape
-Take a spec object (an object with key / validator pair) and return a validator that apply each validator to the 
+Takes a spec object (an object with key / validator pair) and returns a validator that apply each validators to the corresponding object property.
 It also check that the passed value is an object
 
 ```js
@@ -455,7 +453,7 @@ validateUser.check('Hi I am John a valid user')
 // [{ message: 'value must be an object', value: 'Hi I am John a valid user' }]
 ```
 
-shape take also a exact boolean as second argument. whe set to true, shape will also ensure that there is no extraneous key.
+shape also takes an exact boolean as second argument. When set to true, shape will also ensure that there is no key that is not tested by a validator.
 
 
 ```js
