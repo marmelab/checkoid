@@ -3,13 +3,30 @@
     "version": "1.0.0",
     "description": "Checkoid: A validator library that allows to combine validator like you would lego piece.",
     "main": "dist/bundle.js",
+    "files": [
+        "dist"
+    ],
     "scripts": {
         "test": "jest",
         "test-watch": "jest --watch",
         "build": "rollup ./src/index.js --file ./dist/bundle.js --format umd --name 'checkoid' --compact"
     },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/marmelab/checkoid"
+    },
+    "keywords": [
+        "validate",
+        "validation",
+        "validator",
+        "assert"
+    ],
     "author": "Thiery Michel <thiery@marmelab.com>",
-    "license": "ISC",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/marmelab/checkoid/issues"
+    },
+    "homepage": "https://github.com/marmelab/checkoid",
     "dependencies": {},
     "devDependencies": {
         "jest": "26.4.2",
