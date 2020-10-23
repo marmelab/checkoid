@@ -1,7 +1,7 @@
 import { validator } from "../Validator";
 
 export const isNumber = validator((value) =>
-    typeof value === "number" && !isNaN(number) && isFinite(number)
+    typeof value === "number" && !isNaN(value) && isFinite(value)
         ? undefined
         : "value must be a number"
 );

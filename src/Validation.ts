@@ -37,7 +37,7 @@ export const Invalid = (x) => ({
         if (other.fork) {
             return Async.of(Invalid(x)).or(other);
         }
-        return other.isValid ? Valid(other.x) : Invalid(x.concat(other.x));
+        return other.isValid ? Valid() : Invalid(x.concat(other.x));
     },
     format: (fn) => Invalid(x.map(fn)), // allows to apply function to invalid message
     fold: (onValid, onInvalid) => onInvalid(x),
@@ -89,7 +89,7 @@ export const lift = (fn) => (value) => {
         return Invalid([result]);
     }
 
-    return Valid(value);
+    return Valid();
 };
 
 // Takes a function and wrap its result in an Async data type
