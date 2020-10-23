@@ -4,6 +4,7 @@ describe("Validation", () => {
     describe("and", () => {
         it("Valid and Valid should keep the first Valid value", () => {
             const res = Valid().and(Valid());
+
             expect(res.isValid).toBe(true);
             expect(res.getResult()).toBeUndefined();
         });

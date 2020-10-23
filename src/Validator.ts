@@ -24,11 +24,6 @@ export const Validator = (run) => ({
 
 Validator.getEntry = () => Validator((x) => x);
 
-export const asyncValidator = (fn) =>
-    Validator(asyncLift(fn)).afterHook((message, value) => ({
-        message,
-        value,
-    }));
+export const asyncValidator = (fn) => Validator(asyncLift(fn));
 
-export const validator = (fn) =>
-    Validator(lift(fn)).afterHook((message, value) => ({ message, value }));
+export const validator = (fn) => Validator(lift(fn));
