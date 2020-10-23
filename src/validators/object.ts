@@ -21,7 +21,7 @@ export const hasNoExtraneousKeys = (keys) =>
 
 export const isExactObject = (keys) => isObject.and(hasNoExtraneousKeys(keys));
 
-export const shape = (spec, exact) => {
+export const shape = (spec, exact?) => {
     const isObjectValidator = exact
         ? isExactObject(Object.keys(spec))
         : isObject;
