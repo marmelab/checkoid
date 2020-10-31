@@ -29,7 +29,7 @@ export interface Valid {
             all: InvalidResult[]
         ) => InvalidResult
     ) => Valid;
-    getResult: () => undefined;
+    getResult: () => void;
 }
 
 export interface Invalid {
