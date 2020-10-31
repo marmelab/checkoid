@@ -1,11 +1,15 @@
 import { validator, Validator } from "../Validator";
+import { SyncValidation, AsyncValidation } from "../Validation";
 import { and, addKeyToMessage } from "../utils";
 
 export const isArray = validator((value) =>
     Array.isArray(value) ? undefined : "value must be an array"
 );
 
-export const arrayOf = (validator) =>
+export const arrayOf = <T extends SyncValidation | AsyncValidation>(
+    validator: Validator<T>
+): Validator<T> =>
+    //@ts-ignore
     Validator.getEntry().chain((values) =>
         (Array.isArray(values) ? values : [])
             .map((item, key) =>

@@ -18,7 +18,7 @@ import {
 
 type run<T extends SyncValidation | AsyncValidation> = (x: any) => T;
 
-interface Validator<T extends SyncValidation | AsyncValidation> {
+export interface Validator<T extends SyncValidation | AsyncValidation> {
     run: run<T>;
     and<O extends SyncValidation | AsyncValidation>(
         other: Validator<O>
