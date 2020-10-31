@@ -3,22 +3,25 @@ type Fork = (
     resolve: (value: Valid | Invalid) => void
 ) => void;
 
-interface InvalidResult {
+export interface InvalidResult {
     value: any;
     message: string;
-    key?: [string];
+    key?: string[];
 }
 
-interface Valid {
+export interface Valid {
     isValid: true;
     x: undefined;
     fork: undefined;
+    and(
+        other: Valid | Invalid | AsyncValidation
+    ): Valid | Invalid | AsyncValidation;
     and(other: Valid): Valid;
     and(other: Invalid): Invalid;
-    and(other: Async): Async;
-
+    and(other: AsyncValidation): AsyncValidation;
+    or(other: Valid | Invalid | AsyncValidation): Valid | AsyncValidation;
     or(other: Valid | Invalid): Valid;
-    or(other: Async): Async;
+    or(other: AsyncValidation): AsyncValidation;
     format: (
         fn: (
             invalidResult: InvalidResult,
@@ -29,15 +32,20 @@ interface Valid {
     getResult: () => undefined;
 }
 
-interface Invalid {
+export interface Invalid {
     x: InvalidResult[];
     isValid: false;
     fork: undefined;
-    and(other: Async): Async;
+    and(other: Valid | Invalid | AsyncValidation): Invalid | AsyncValidation;
+    and(other: AsyncValidation): AsyncValidation;
     and(other: Valid | Invalid): Invalid;
 
-    or(other: Async): Async;
-    or(other: Valid | Invalid): Valid;
+    or(
+        other: Valid | Invalid | AsyncValidation
+    ): Valid | Invalid | AsyncValidation;
+    or(other: AsyncValidation): AsyncValidation;
+    or(other: Valid): Valid;
+    or(other: Invalid): Invalid;
     format: (
         fn: (
             invalidResult: InvalidResult,
@@ -48,30 +56,34 @@ interface Invalid {
     getResult: () => InvalidResult[];
 }
 
-interface Async {
+export type SyncValidation = Valid | Invalid;
+
+export interface AsyncValidation {
     x: undefined;
     fork: Fork;
     isValid: undefined;
-    and: (v: Valid | Invalid | Async) => Async;
-    or: (v: Valid | Invalid | Async) => Async;
+    and(v: Valid | Invalid | AsyncValidation): AsyncValidation;
+    or(v: Valid | Invalid | AsyncValidation): AsyncValidation;
     format: (
         fn: (
             invalidResult: InvalidResult,
             index: number,
             all: InvalidResult[]
         ) => InvalidResult
-    ) => Async;
-    getResult: () => Promise<InvalidResult[] | undefined>;
+    ) => AsyncValidation;
+    getResult: () => Promise<void | InvalidResult[]>;
 }
 
-const isValid = (value: Valid | Invalid | Async): value is Valid =>
+const isValid = (value: Valid | Invalid | AsyncValidation): value is Valid =>
     value.isValid;
 
-const isInvalid = (value: Valid | Invalid | Async): value is Invalid =>
-    value.isValid === false;
+const isInvalid = (
+    value: Valid | Invalid | AsyncValidation
+): value is Invalid => value.isValid === false;
 
-const isAsync = (value: Valid | Invalid | Async): value is Async =>
-    !!value.fork;
+const isAsync = (
+    value: Valid | Invalid | AsyncValidation
+): value is AsyncValidation => !!value.fork;
 
 // Valid will hold no value
 export const Valid = (): Valid => ({
@@ -81,7 +93,7 @@ export const Valid = (): Valid => ({
     and(other: any): any {
         if (isAsync(other)) {
             other;
-            return Async.of(Valid()).and(other) as Async;
+            return Async.of(Valid()).and(other) as AsyncValidation;
         }
 
         if (isInvalid(other)) {
@@ -128,7 +140,7 @@ export const Invalid = (x: InvalidResult[]): Invalid => ({
 });
 
 // Async validation that will resolve to a Valid or Invalid one
-export const Async = (fork: Fork): Async => ({
+export const Async = (fork: Fork): AsyncValidation => ({
     isValid: undefined,
     x: undefined,
     and: (other) =>
@@ -159,9 +171,10 @@ export const Async = (fork: Fork): Async => ({
             fork(reject, resolve)
         ).then((validation: Valid | Invalid) => validation.getResult()),
 });
-Async.of = (a: Valid | Invalid): Async => Async((_, resolve) => resolve(a));
+Async.of = (a: Valid | Invalid): AsyncValidation =>
+    Async((_, resolve) => resolve(a));
 Async.valid = () => Async((_, resolve) => resolve(Valid()));
-Async.invalid = (a: [InvalidResult]) =>
+Async.invalid = (a: InvalidResult[]) =>
     Async((_, resolve) => resolve(Invalid(a)));
 
 export function lift(fn: (x: any) => string | undefined) {
@@ -182,9 +195,7 @@ export function lift(fn: (x: any) => string | undefined) {
 }
 
 // Takes a function and wrap its result in an Async data type
-export const asyncLift = (fn: (x: any) => Promise<string | undefined>) => (
-    value
-) =>
+export const asyncLift = (fn: (x: any) => Promise<string | void>) => (value) =>
     Async((reject, resolve) => {
         try {
             // Promise.resolve will convert the function result to a promise if it is not
