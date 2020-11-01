@@ -8,5 +8,4 @@ export default {
         format: "umd",
     },
     plugins: [typescript()],
-    external: ["tslib"],
 };
