@@ -52,9 +52,9 @@ export const Validator = <T extends SyncValidation | AsyncValidation>(
     // also known as contraMap
     beforeHook: (fn) => Validator((x) => run(fn(x))),
     afterHook: (fn) =>
-        Validator(run).chain((x) =>
-            Validator.getEntry().map((entry) =>
-                x.format((message) => fn(message, entry))
+        Validator(run).chain((x: any) =>
+            Validator.getEntry().map((entry: any) =>
+                x.format((message: InvalidResult) => fn(message, entry))
             )
         ),
     format: (fn) =>
@@ -72,7 +72,10 @@ Validator.getEntry = <T extends SyncValidation | AsyncValidation>(): Validator<
     T
 > => Validator((x) => x);
 
-export const asyncValidator = (fn): Validator<AsyncValidation> =>
-    Validator(asyncLift(fn));
+export const asyncValidator = (
+    fn: (x: any) => Promise<string | void>
+): Validator<AsyncValidation> => Validator(asyncLift(fn));
 
-export const validator = (fn): Validator<SyncValidation> => Validator(lift(fn));
+export const validator = (
+    fn: (x: any) => string | void
+): Validator<SyncValidation> => Validator(lift(fn));

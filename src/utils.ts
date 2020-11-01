@@ -1,12 +1,14 @@
 import { Validator } from "./Validator";
 import { SyncValidation, AsyncValidation } from "./Validation";
 
-export const and = (validator1, validator2) => validator1.and(validator2);
+export const and = (validator1: any, validator2: any) =>
+    validator1.and(validator2);
 
 export const path = (keys: string[], obj: Object) =>
+    // @ts-ignore
     keys.reduce((acc, key) => acc && acc[key], obj);
 
-const isDefined = (value) => {
+const isDefined = (value: any) => {
     return typeof value !== "undefined";
 };
 
@@ -26,7 +28,7 @@ const normalizeMessage = (
 
 export const addKeyToMessage = (key: string | number) => (
     msg: string | { message: string; key?: string[]; value: any },
-    entry
+    entry: any
 ) => {
     const message = normalizeMessage(msg);
     const newKey = keysToPath(key, message.key);

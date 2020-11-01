@@ -40,7 +40,12 @@ interface shape {
     ): Validator<SyncValidation>;
 }
 
-export const shape: shape = (spec, exact) => {
+export const shape: shape = (
+    spec: {
+        [k: string]: Validator<SyncValidation | AsyncValidation>;
+    },
+    exact?: boolean
+) => {
     const isObjectValidator = exact
         ? isExactObject(Object.keys(spec))
         : isObject;

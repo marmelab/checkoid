@@ -177,7 +177,7 @@ Async.valid = () => Async((_, resolve) => resolve(Valid()));
 Async.invalid = (a: InvalidResult[]) =>
     Async((_, resolve) => resolve(Invalid(a)));
 
-export function lift(fn: (x: any) => string | undefined) {
+export function lift(fn: (x: any) => string | void) {
     return (value: any) => {
         const result = fn(value);
         if (result && (result as any).then) {
@@ -195,7 +195,9 @@ export function lift(fn: (x: any) => string | undefined) {
 }
 
 // Takes a function and wrap its result in an Async data type
-export const asyncLift = (fn: (x: any) => Promise<string | void>) => (value) =>
+export const asyncLift = (fn: (x: any) => Promise<string | void>) => (
+    value: any
+) =>
     Async((reject, resolve) => {
         try {
             // Promise.resolve will convert the function result to a promise if it is not

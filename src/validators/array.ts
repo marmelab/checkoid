@@ -2,7 +2,7 @@ import { validator, Validator } from "../Validator";
 import { SyncValidation, AsyncValidation } from "../Validation";
 import { and, addKeyToMessage } from "../utils";
 
-export const isArray = validator((value) =>
+export const isArray = validator((value: any) =>
     Array.isArray(value) ? undefined : "value must be an array"
 );
 
