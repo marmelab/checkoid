@@ -2,9 +2,9 @@
     "name": "checkoid",
     "version": "1.0.0",
     "description": "Checkoid: A validator library that allows to combine validator like you would lego piece.",
-    "main": "dist/index.js",
+    "main": "dist/lib/index.js",
+    "module": "dist/esm/index.js",
     "type": "module",
-    "types": "dist/index.d.ts",
     "files": [
         "dist"
     ],
