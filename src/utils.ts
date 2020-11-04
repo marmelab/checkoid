@@ -4,6 +4,13 @@ import { SyncValidation, AsyncValidation } from "./Validation";
 export const and = (validator1: any, validator2: any) =>
     validator1.and(validator2);
 
+/**
+ *
+ * Retrieve the value at a given path.
+ *
+ * @param keys path composed of a list of keys
+ * @param obj the object we want to get the value from
+ */
 export const path = (keys: string[], obj: Object) =>
     // @ts-ignore
     keys.reduce((acc, key) => acc && acc[key], obj);

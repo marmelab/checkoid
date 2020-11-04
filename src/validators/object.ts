@@ -23,7 +23,7 @@ export const hasNoExtraneousKeys = (keys: string[]) =>
 export const isExactObject = (keys: string[]) =>
     isObject.and(hasNoExtraneousKeys(keys));
 
-interface shape {
+interface Shape {
     (
         spec: {
             [k: string]: Validator<SyncValidation | AsyncValidation>;
@@ -31,7 +31,7 @@ interface shape {
         exact?: boolean
     ): Validator<AsyncValidation>;
 }
-interface shape {
+interface Shape {
     (
         spec: {
             [k: string]: Validator<SyncValidation>;
@@ -40,7 +40,7 @@ interface shape {
     ): Validator<SyncValidation>;
 }
 
-export const shape: shape = (
+export const shape: Shape = (
     spec: {
         [k: string]: Validator<SyncValidation | AsyncValidation>;
     },

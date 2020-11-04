@@ -6,12 +6,12 @@ import {
     InvalidResult,
 } from "./Validation";
 
-type run<T extends SyncValidation | AsyncValidation> = (
+type Run<T extends SyncValidation | AsyncValidation> = (
     x: any
 ) => T extends AsyncValidation ? AsyncValidation : SyncValidation;
 
 export interface Validator<T extends SyncValidation | AsyncValidation> {
-    run: run<T>;
+    run: Run<T>;
     and<O extends SyncValidation | AsyncValidation>(
         other: Validator<O>
     ): T extends AsyncValidation
@@ -42,7 +42,7 @@ export interface Validator<T extends SyncValidation | AsyncValidation> {
 }
 
 export const Validator = <T extends SyncValidation | AsyncValidation>(
-    run: run<T>
+    run: Run<T>
 ): Validator<T> => ({
     run,
     // @ts-ignore
