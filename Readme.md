@@ -2,6 +2,8 @@
 
 Checkoid is a validator library with zero dependencies that allows to combine validator like you would lego piece.
 
+[A simple demo](https://codesandbox.io/s/checkoid-simple-demo-fldge?file=/src/characterSheetValidator.js)
+
 ## Usage
 You can create simple validator:
 Simply pass a function, that either return a value for an error, or nothing if the value is valid.
