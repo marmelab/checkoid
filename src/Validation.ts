@@ -129,8 +129,8 @@ export type SyncValidation = Valid | Invalid;
  * Resolve function need to receive either a Valid or an Invalid
  */
 type Fork = (
-    reject: (value: Error) => void,
-    resolve: (value: Valid | Invalid) => void
+    resolve: (value: Valid | Invalid) => void,
+    reject: (value: Error) => void
 ) => void;
 
 /**
@@ -169,42 +169,42 @@ export const asyncValidation = (fork: Fork): AsyncValidation => ({
     isValid: undefined,
     x: undefined,
     and: (other) =>
-        asyncValidation((reject, resolve) =>
-            fork(reject, (result1: any) => {
+        asyncValidation((resolve, reject) =>
+            fork((result1: any) => {
                 (isAsync(other)
                     ? other
                     : asyncValidation.of(other as Valid | Invalid)
-                ).fork(reject, (result2) => resolve(result1.and(result2)));
-            })
+                ).fork((result2) => resolve(result1.and(result2)), reject);
+            }, reject)
         ),
     or: (other) =>
-        asyncValidation((reject, resolve) =>
-            fork(reject, (result1: any) => {
+        asyncValidation((resolve, reject) =>
+            fork((result1: any) => {
                 (isAsync(other)
                     ? other
                     : asyncValidation.of(other as Valid | Invalid)
-                ).fork(reject, (result2) => resolve(result1.or(result2)));
-            })
+                ).fork((result2) => resolve(result1.or(result2)), reject);
+            }, reject)
         ),
     format: (fn) =>
-        asyncValidation((reject, resolve) =>
-            fork(reject, (result) => resolve(result.format(fn)))
+        asyncValidation((resolve, reject) =>
+            fork((result) => resolve(result.format(fn)), reject)
         ),
     fork,
     getResult: () =>
-        new Promise((resolve, reject) =>
-            fork(reject, resolve)
-        ).then((validation: Valid | Invalid) => validation.getResult()),
+        new Promise(fork).then((validation: Valid | Invalid) =>
+            validation.getResult()
+        ),
 });
 
 // Convert Valid or Invalid into AsyncValidation
 asyncValidation.of = (a: Valid | Invalid): AsyncValidation =>
-    asyncValidation((_, resolve) => resolve(a));
+    asyncValidation((resolve) => resolve(a));
 // helper to create an AsyncValidation that will resolve to a Valid
-asyncValidation.valid = () => asyncValidation((_, resolve) => resolve(valid()));
+asyncValidation.valid = () => asyncValidation((resolve) => resolve(valid()));
 // helper to create an AsyncValidation that will resolve to an Invalid holding the given InvalidResults
 asyncValidation.invalid = (a: InvalidResult[]) =>
-    asyncValidation((_, resolve) => resolve(invalid(a)));
+    asyncValidation((resolve) => resolve(invalid(a)));
 
 /**
  * Takes a synchronous validation function returnning either a string or undefined
@@ -235,7 +235,7 @@ export function lift(fn: (x: any) => string | void) {
 export const asyncLift = (fn: (x: any) => Promise<string | void>) => (
     value: any
 ) =>
-    asyncValidation((reject, resolve) => {
+    asyncValidation((resolve, reject) => {
         try {
             // Promise.resolve will convert the function result to a promise if it is not
             Promise.resolve(fn(value))
