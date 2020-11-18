@@ -50,9 +50,6 @@ export const shape: Shape = (
         ? isExactObject(Object.keys(spec))
         : isObject;
 
-    const o = Object.keys(spec).map((key) =>
-        spec[key].beforeHook((v) => v && v[key]).afterHook(addKeyToMessage(key))
-    );
     return Object.keys(spec)
         .map((key) =>
             spec[key]

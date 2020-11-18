@@ -1,4 +1,4 @@
-import { validator, Validator } from "../Validator";
+import { validator, Validator, getEntry } from "../Validator";
 import { SyncValidation, AsyncValidation } from "../Validation";
 import { and, addKeyToMessage } from "../utils";
 
@@ -10,7 +10,7 @@ export const arrayOf = <T extends SyncValidation | AsyncValidation>(
     validator: Validator<T>
 ): Validator<T> =>
     //@ts-ignore
-    Validator.getEntry().chain((values) =>
+    getEntry().chain((values) =>
         (Array.isArray(values) ? values : [])
             .map((item, key) =>
                 validator

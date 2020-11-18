@@ -41,41 +41,41 @@ export interface Validator<T extends SyncValidation | AsyncValidation> {
         : Promise<void | InvalidResult[]>;
 }
 
-export const Validator = <T extends SyncValidation | AsyncValidation>(
+export const createValidator = <T extends SyncValidation | AsyncValidation>(
     run: Run<T>
 ): Validator<T> => ({
     run,
     // @ts-ignore
-    and: (other) => Validator((x) => run(x).and(other.run(x))),
+    and: (other) => createValidator((x) => run(x).and(other.run(x))),
     // @ts-ignore
-    or: (other) => Validator((x) => run(x).or(other.run(x))),
+    or: (other) => createValidator((x) => run(x).or(other.run(x))),
     // also known as contraMap
-    beforeHook: (fn) => Validator((x) => run(fn(x))),
+    beforeHook: (fn) => createValidator((x) => run(fn(x))),
     afterHook: (fn) =>
-        Validator(run).chain((x: any) =>
-            Validator.getEntry().map((entry: any) =>
+        createValidator(run).chain((x: any) =>
+            getEntry().map((entry: any) =>
                 x.format((message: InvalidResult) => fn(message, entry))
             )
         ),
     format: (fn) =>
-        Validator(run).afterHook((result) => ({
+        createValidator(run).afterHook((result) => ({
             ...result,
             message: fn(result),
         })),
-    map: (fn) => Validator((x) => fn(run(x))),
-    chain: (fn) => Validator((x) => fn(run(x)).run(x)),
+    map: (fn) => createValidator((x) => fn(run(x))),
+    chain: (fn) => createValidator((x) => fn(run(x)).run(x)),
     // @ts-ignore
     check: (x) => run(x).getResult(),
 });
 
-Validator.getEntry = <T extends SyncValidation | AsyncValidation>(): Validator<
-    T
-> => Validator((x) => x);
+export const getEntry = <
+    T extends SyncValidation | AsyncValidation
+>(): Validator<T> => createValidator((x) => x);
 
 export const asyncValidator = (
     fn: (x: any) => Promise<string | void>
-): Validator<AsyncValidation> => Validator(asyncLift(fn));
+): Validator<AsyncValidation> => createValidator(asyncLift(fn));
 
 export const validator = (
     fn: (x: any) => string | void
-): Validator<SyncValidation> => Validator(lift(fn));
+): Validator<SyncValidation> => createValidator(lift(fn));
