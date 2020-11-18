@@ -3,10 +3,10 @@
  * A semigroup is a monoid with two operation instead of one
  * Number addition is a monoid add multiplication and you get a semigroup
  *
- * Valiation is a set composed of Valid, Invalid and Async
+ * Valiation is a set composed of Valid, Invalid and AsyncValidation
  * It has two operations `and` and `or`.
  * When combining two validation with `and` or `or` you will always get back a Validation
- * Validation is internal and allows to Validator to be combined
+ * Validation is internal and allows Validator to be combined
  */
 
 export interface InvalidResult {
@@ -124,9 +124,11 @@ export type SyncValidation = Valid | Invalid;
 
 /**
  * Type for a function that takes two callback
+ * It corresponds to a function that could be passed to create a promise
+ * This allows Async to holds an async computation lazily
  * It will call the first reject function if its computation failed
  * or the resolve function if it succeeded.
- * Resolve function need to receive either a Valid or an Invalid
+ * Resolve function must receive either a Valid or an Invalid
  */
 type Fork = (
     resolve: (value: Valid | Invalid) => void,
@@ -164,7 +166,9 @@ const isAsync = (
     value: Valid | Invalid | AsyncValidation
 ): value is AsyncValidation => !!value.fork;
 
-// function to create an asyncValidation it takes a fork function
+// function to create an asyncValidation
+// it takes a fork function like a promise would, unlike a promise,
+// it will not execute the function until getResult is called
 export const asyncValidation = (fork: Fork): AsyncValidation => ({
     isValid: undefined,
     x: undefined,
