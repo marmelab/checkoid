@@ -1,9 +1,23 @@
+/**
+ * Validation semigroup
+ * A semigroup is a monoid with two operation instead of one
+ * Number addition is a monoid add multiplication and you get a semigroup
+ *
+ * Valiation is a set composed of Valid, Invalid and Async
+ * It has two operations `and` and `or`.
+ * When combining two validation with `and` or `or` you will always get back a Validation
+ * Validation is internal and allows to Validator to be combined
+ */
+
 export interface InvalidResult {
     value: any;
     message: string;
     key?: string[];
 }
 
+/**
+ * Valid is a Validation that passed. It holds no value
+ */
 export interface Valid {
     isValid: true;
     x: undefined;
@@ -27,7 +41,7 @@ export interface Valid {
     getResult: () => void;
 }
 
-// Valid will hold no value
+// function to create a Valid
 export const valid = (): Valid => ({
     isValid: true,
     x: undefined,
@@ -57,6 +71,9 @@ export const valid = (): Valid => ({
     getResult: () => undefined,
 });
 
+/**
+ * Invalid is a Validation that failed. It holds an array of InvalidResult
+ */
 export interface Invalid {
     x: InvalidResult[];
     isValid: false;
@@ -81,7 +98,7 @@ export interface Invalid {
     getResult: () => InvalidResult[];
 }
 
-// Invalid will concat other invalid value to its value
+// function to create an invalid, it takes an array of InvalidResult
 export const invalid = (x: InvalidResult[]): Invalid => ({
     x,
     isValid: false,
@@ -105,11 +122,21 @@ export const invalid = (x: InvalidResult[]): Invalid => ({
 
 export type SyncValidation = Valid | Invalid;
 
+/**
+ * Type for a function that takes two callback
+ * It will call the first reject function if its computation failed
+ * or the resolve function if it succeeded.
+ * Resolve function need to receive either a Valid or an Invalid
+ */
 type Fork = (
     reject: (value: Error) => void,
     resolve: (value: Valid | Invalid) => void
 ) => void;
 
+/**
+ * AsyncValidation is a Validation that has not yet resolved.
+ * It holds a fork function that will resolve to either a Valid or an Invalid
+ */
 export interface AsyncValidation {
     x: undefined;
     fork: Fork;
@@ -137,7 +164,7 @@ const isAsync = (
     value: Valid | Invalid | AsyncValidation
 ): value is AsyncValidation => !!value.fork;
 
-// Async validation that will resolve to a Valid or Invalid one
+// function to create an asyncValidation it takes a fork function
 export const asyncValidation = (fork: Fork): AsyncValidation => ({
     isValid: undefined,
     x: undefined,
@@ -169,12 +196,21 @@ export const asyncValidation = (fork: Fork): AsyncValidation => ({
             fork(reject, resolve)
         ).then((validation: Valid | Invalid) => validation.getResult()),
 });
+
+// Convert Valid or Invalid into AsyncValidation
 asyncValidation.of = (a: Valid | Invalid): AsyncValidation =>
     asyncValidation((_, resolve) => resolve(a));
+// helper to create an AsyncValidation that will resolve to a Valid
 asyncValidation.valid = () => asyncValidation((_, resolve) => resolve(valid()));
+// helper to create an AsyncValidation that will resolve to an Invalid holding the given InvalidResults
 asyncValidation.invalid = (a: InvalidResult[]) =>
     asyncValidation((_, resolve) => resolve(invalid(a)));
 
+/**
+ * Takes a synchronous validation function returnning either a string or undefined
+ * Return a new function that return A Valid when the original function would return undefined
+ * or an invalid when the original function would return a string
+ * */
 export function lift(fn: (x: any) => string | void) {
     return (value: any) => {
         const result = fn(value);
@@ -192,7 +228,10 @@ export function lift(fn: (x: any) => string | void) {
     };
 }
 
-// Takes a function and wrap its result in an Async data type
+/**
+ * Takes an async validation function that resolve to either a string or undefined
+ * Return a new function that return an AsyncValidation
+ * */
 export const asyncLift = (fn: (x: any) => Promise<string | void>) => (
     value: any
 ) =>
