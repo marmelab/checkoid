@@ -468,7 +468,7 @@ describe("openapi", () => {
                     { message: "value must be at least 10", value: 7.5 },
                 ]);
             });
-            it("should handle number type schema with minimumand exclusiveMinimum", () => {
+            it("should handle number type schema with minimum and exclusiveMinimum", () => {
                 const schema: Schema = {
                     type: "number",
                     minimum: 10,
@@ -510,6 +510,89 @@ describe("openapi", () => {
                     { message: "value must be less than 100", value: 100 },
                 ]);
                 expect(validator.check(101.5)).toEqual([
+                    { message: "value must be less than 100", value: 101.5 },
+                ]);
+            });
+        });
+        describe("integer type", () => {
+            it("should handle integer type schema", () => {
+                const schema: Schema = {
+                    type: "integer",
+                };
+                const validator = schemaToValidator(schema);
+
+                expect(validator.check(42)).toBe(undefined);
+                expect(validator.check(42.5)).toEqual([
+                    { message: "value must be an integer", value: 42.5 },
+                ]);
+                expect(validator.check("A string")).toEqual([
+                    { message: "value must be a number", value: "A string" },
+                    { message: "value must be an integer", value: "A string" },
+                ]);
+                expect(validator.check("42")).toEqual([
+                    { message: "value must be a number", value: "42" },
+                    { message: "value must be an integer", value: "42" },
+                ]);
+            });
+            it("should handle number type schema with minimum", () => {
+                const schema: Schema = {
+                    type: "integer",
+                    minimum: 10,
+                };
+                const validator = schemaToValidator(schema);
+
+                expect(validator.check(42)).toBe(undefined);
+                expect(validator.check(10)).toBe(undefined);
+                expect(validator.check(7.5)).toEqual([
+                    { message: "value must be an integer", value: 7.5 },
+                    { message: "value must be at least 10", value: 7.5 },
+                ]);
+            });
+            it("should handle number type schema with minimum and exclusiveMinimum", () => {
+                const schema: Schema = {
+                    type: "integer",
+                    minimum: 10,
+                    exclusiveMinimum: true,
+                };
+                const validator = schemaToValidator(schema);
+
+                expect(validator.check(42)).toBe(undefined);
+                expect(validator.check(10)).toEqual([
+                    { message: "value must be greater than 10", value: 10 },
+                ]);
+                expect(validator.check(7.5)).toEqual([
+                    { message: "value must be an integer", value: 7.5 },
+                    { message: "value must be greater than 10", value: 7.5 },
+                ]);
+            });
+            it("should handle number type schema with maximum", () => {
+                const schema: Schema = {
+                    type: "integer",
+                    maximum: 100,
+                };
+                const validator = schemaToValidator(schema);
+
+                expect(validator.check(42)).toBe(undefined);
+                expect(validator.check(100)).toBe(undefined);
+                expect(validator.check(101.5)).toEqual([
+                    { message: "value must be an integer", value: 101.5 },
+                    { message: "value must be at most 100", value: 101.5 },
+                ]);
+            });
+            it("should handle number type schema with maximum and exclusiveMaximum", () => {
+                const schema: Schema = {
+                    type: "integer",
+                    maximum: 100,
+                    exclusiveMaximum: true,
+                };
+                const validator = schemaToValidator(schema);
+
+                expect(validator.check(42)).toBe(undefined);
+                expect(validator.check(100)).toEqual([
+                    { message: "value must be less than 100", value: 100 },
+                ]);
+                expect(validator.check(101.5)).toEqual([
+                    { message: "value must be an integer", value: 101.5 },
                     { message: "value must be less than 100", value: 101.5 },
                 ]);
             });
