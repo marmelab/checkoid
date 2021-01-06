@@ -615,5 +615,24 @@ describe("openapi", () => {
                 ]);
             });
         });
+
+        describe("array type", () => {
+            it("should handle type array schema", () => {
+                const schema: Schema = {
+                    type: "array",
+                    items: {
+                        type: "string",
+                    },
+                };
+
+                const validator = schemaToValidator(schema);
+
+                expect(validator.check([])).toBe(undefined);
+                expect(validator.check(["foo", "bar"])).toBe(undefined);
+                expect(validator.check(["foo", "bar", 7])).toEqual([
+                    { key: [2], message: "value must be a string", value: 7 },
+                ]);
+            });
+        });
     });
 });
