@@ -27,6 +27,7 @@ import {
 import { isBoolean } from "../validators/boolean";
 
 import { arrayOf } from "../validators/array";
+import { shape } from "../validators/object";
 
 type Schema = OpenAPIV3.SchemaObject;
 
@@ -91,25 +92,27 @@ export const schemaToValidator = (
                 schemaToValidator(schema.items as OpenAPIV3.ArraySchemaObject)
             );
         case "object":
+            return shape(schemasToValidators(schema.properties));
     }
+};
+
+export const schemasToValidators = (schemas: {
+    [key: string]:
+        | OpenAPIV3.ReferenceObject
+        | OpenAPIV3.ArraySchemaObject
+        | OpenAPIV3.NonArraySchemaObject;
+}): { [key: string]: Validator<SyncValidation> } => {
+    return Object.keys(schemas).reduce((acc, key) => {
+        const schema = schemas[key] as Schema;
+        return {
+            ...acc,
+            [key]: schemaToValidator(schema),
+        };
+    }, {});
 };
 
 export const openApiValidator = async (path: string) => {
     const schemas = await getOpenApiSchema(path);
 
-    Object.keys(schemas).reduce((acc, key) => {
-        const schema = schemas[key] as Schema;
-        switch (schema.type) {
-            case "array":
-            case "boolean":
-            case "integer":
-            case "number":
-            case "object":
-            case "string":
-        }
-        return {
-            ...acc,
-            [key]: schema,
-        };
-    }, {});
+    return schemasToValidators(schemas);
 };
