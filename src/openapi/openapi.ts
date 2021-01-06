@@ -12,6 +12,8 @@ import {
     base64,
     match,
     oneOf,
+    minLength,
+    maxLength,
 } from "../validators/string";
 
 import {
@@ -56,30 +58,51 @@ export const configureNumberValidator = (schema: Schema) => {
     return numberValidator;
 };
 
+const getStringFormatValidator = (format: String | undefined) => {
+    switch (format) {
+        case "date-time":
+            return isString.and(dateTime);
+        case "date":
+            return isString.and(date);
+        case "binary":
+            return isString.and(binary);
+        case "byte":
+            return isString.and(base64);
+        default: {
+            return isString;
+        }
+    }
+};
+
+export const configStringValidator = (schema: Schema) => {
+    let resultValidator = getStringFormatValidator(schema.format);
+
+    if (schema.enum) {
+        resultValidator = resultValidator.and(oneOf(schema.enum));
+    }
+    if (schema.pattern) {
+        resultValidator = resultValidator.and(
+            match(new RegExp(schema.pattern))
+        );
+    }
+
+    if (schema.minLength) {
+        resultValidator = resultValidator.and(minLength(schema.minLength));
+    }
+
+    if (schema.maxLength) {
+        resultValidator = resultValidator.and(maxLength(schema.maxLength));
+    }
+
+    return resultValidator;
+};
+
 export const schemaToValidator = (
     schema: Schema
 ): Validator<SyncValidation> => {
     switch (schema.type) {
         case "string": {
-            switch (schema.format) {
-                case "date-time":
-                    return isString.and(dateTime);
-                case "date":
-                    return isString.and(date);
-                case "binary":
-                    return isString.and(binary);
-                case "byte":
-                    return isString.and(base64);
-                default: {
-                    if (schema.enum) {
-                        return isString.and(oneOf(schema.enum));
-                    }
-                    if (schema.pattern) {
-                        return isString.and(match(new RegExp(schema.pattern)));
-                    }
-                    return isString;
-                }
-            }
+            return configStringValidator(schema);
         }
         case "integer":
         case "number": {

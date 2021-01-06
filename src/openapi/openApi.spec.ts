@@ -343,5 +343,94 @@ describe("openapi", () => {
                 },
             ]);
         });
+
+        it("should handle string type schema with minLength", () => {
+            const schema: Schema = {
+                type: "string",
+                minLength: 20,
+            };
+
+            const validator = schemaToValidator(schema);
+
+            expect(validator.check("A string that pass validation")).toBe(
+                undefined
+            );
+            expect(validator.check("A too small string")).toEqual([
+                {
+                    message: "value must be at least 20 characters long",
+                    value: "A too small string",
+                },
+            ]);
+            expect(validator.check(45)).toEqual([
+                { message: "value must be a string", value: 45 },
+                {
+                    message: "value must be at least 20 characters long",
+                    value: 45,
+                },
+            ]);
+        });
+
+        it("should handle string type schema with maxLength", () => {
+            const schema: Schema = {
+                type: "string",
+                maxLength: 50,
+            };
+
+            const validator = schemaToValidator(schema);
+
+            expect(validator.check("A string that pass validation")).toBe(
+                undefined
+            );
+            expect(
+                validator.check(
+                    "A string that is way too long. Seriously, what did you expect ?"
+                )
+            ).toEqual([
+                {
+                    message: "value must be at most 50 characters long",
+                    value:
+                        "A string that is way too long. Seriously, what did you expect ?",
+                },
+            ]);
+            expect(validator.check(45)).toEqual([
+                { message: "value must be a string", value: 45 },
+                {
+                    message: "value must be at most 50 characters long",
+                    value: 45,
+                },
+            ]);
+        });
+
+        it("should handle absurdly complex string type schema", () => {
+            const schema: Schema = {
+                type: "string",
+                format: "binary",
+                pattern: "^000",
+                enum: ["0001", "00010", "00011"],
+                minLength: 3,
+                maxLength: 5,
+            };
+
+            const validator = schemaToValidator(schema);
+
+            expect(validator.check("0001")).toBe(undefined);
+            expect(validator.check(45)).toEqual([
+                { message: "value must be a string", value: 45 },
+                { message: "value must be a valid binary string", value: 45 },
+                {
+                    message: 'value must be one of "0001", "00010", "00011"',
+                    value: 45,
+                },
+                { message: "value must match pattern /^000/", value: 45 },
+                {
+                    message: "value must be at least 3 characters long",
+                    value: 45,
+                },
+                {
+                    message: "value must be at most 5 characters long",
+                    value: 45,
+                },
+            ]);
+        });
     });
 });

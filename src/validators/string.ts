@@ -33,3 +33,17 @@ export const oneOf = (values: string[]) =>
         (value) => (values.indexOf(value) !== -1 ? true : false),
         `Value is one of ${values.map((value) => `"${value}"`).join(", ")}`
     );
+
+export const minLength = (min: number) =>
+    validator((value) =>
+        (value && value.length) >= min
+            ? undefined
+            : `value must be at least ${min} characters long`
+    );
+
+export const maxLength = (max: number) =>
+    validator((value) =>
+        (value && value.length) <= max
+            ? undefined
+            : `value must be at most ${max} characters long`
+    );
