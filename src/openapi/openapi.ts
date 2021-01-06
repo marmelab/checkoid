@@ -1,6 +1,9 @@
 import * as SwaggerParser from "@apidevtools/swagger-parser";
 import { OpenAPIV3 } from "openapi-types";
 
+import { Validator } from "../Validator";
+import { SyncValidation } from "../Validation";
+
 import {
     isString,
     date,
@@ -11,6 +14,20 @@ import {
     oneOf,
 } from "../validators/string";
 
+import {
+    isNumber,
+    isInteger,
+    isGt,
+    isGte,
+    isLt,
+    isLte,
+    isMultipleOf,
+} from "../validators/number";
+
+import { isBoolean } from "../validators/boolean";
+
+import { arrayOf } from "../validators/array";
+
 type Schema = OpenAPIV3.SchemaObject;
 
 export const getOpenApiSchema = async (path: string) => {
@@ -19,7 +36,28 @@ export const getOpenApiSchema = async (path: string) => {
     return schema.components.schemas;
 };
 
-export const schemaToValidator = (schema: Schema) => {
+export const configureNumberValidator = (schema: Schema) => {
+    let numberValidator =
+        schema.format === "number" ? isNumber : isNumber.and(isInteger);
+    if (schema.minimum) {
+        numberValidator = schema.exclusiveMinimum
+            ? numberValidator.and(isGt(schema.minimum))
+            : numberValidator.and(isGte(schema.minimum));
+    }
+    if (schema.maximum) {
+        numberValidator = schema.exclusiveMaximum
+            ? numberValidator.and(isLt(schema.maximum))
+            : numberValidator.and(isLte(schema.maximum));
+    }
+    if (schema.multipleOf) {
+        numberValidator = numberValidator.and(isMultipleOf(schema.multipleOf));
+    }
+    return numberValidator;
+};
+
+export const schemaToValidator = (
+    schema: Schema
+): Validator<SyncValidation> => {
     switch (schema.type) {
         case "string": {
             switch (schema.format) {
@@ -42,10 +80,16 @@ export const schemaToValidator = (schema: Schema) => {
                 }
             }
         }
-        case "array":
-        case "boolean":
         case "integer":
-        case "number":
+        case "number": {
+            return configureNumberValidator(schema);
+        }
+        case "boolean":
+            return isBoolean;
+        case "array":
+            return arrayOf(
+                schemaToValidator(schema.items as OpenAPIV3.ArraySchemaObject)
+            );
         case "object":
     }
 };
