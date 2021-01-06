@@ -3,6 +3,7 @@ import { OpenAPIV3 } from "openapi-types";
 
 import { Validator } from "../Validator";
 import { SyncValidation } from "../Validation";
+import { path } from "../utils";
 
 import {
     isString,
@@ -34,11 +35,14 @@ import { shape } from "../validators/object";
 export type Schema = OpenAPIV3.SchemaObject;
 
 export const getOpenApiSchema = async (path: string) => {
-    const schema = (await SwaggerParser.parse(path)) as OpenAPIV3.Document;
-
-    return schema.components.schemas;
+    return (SwaggerParser.parse(path) as unknown) as OpenAPIV3.Document;
 };
 
+const isReferenceObject = (
+    schema: any
+): schema is OpenAPIV3.ReferenceObject => {
+    return schema.$ref;
+};
 export const configureNumberValidator = (schema: Schema) => {
     let numberValidator =
         schema.type === "number" ? isNumber : isNumber.and(isInteger);
@@ -98,8 +102,14 @@ export const configStringValidator = (schema: Schema) => {
 };
 
 export const schemaToValidator = (
-    schema: Schema
+    schema: Schema | OpenAPIV3.ReferenceObject,
+    document: OpenAPIV3.Document
 ): Validator<SyncValidation> => {
+    if (isReferenceObject(schema)) {
+        const keys = schema.$ref.replace("#/", "").split("/");
+
+        return schemaToValidator(path(keys, document), document);
+    }
     switch (schema.type) {
         case "string": {
             return configStringValidator(schema);
@@ -112,33 +122,45 @@ export const schemaToValidator = (
             return isBoolean;
         case "array":
             return arrayOf(
-                schemaToValidator(schema.items as OpenAPIV3.ArraySchemaObject)
+                schemaToValidator(
+                    schema.items as OpenAPIV3.ArraySchemaObject,
+                    document
+                )
             );
         case "object":
-            return shape(schemasToValidators(schema.properties));
+            return shape(schemasToValidators(schema.properties, document));
         default:
             // @TODO handle schema with no type but oneOf, anyOf, allOf, or not props
             throw new Error("Unexpected schema type");
     }
 };
 
-export const schemasToValidators = (schemas: {
-    [key: string]:
-        | OpenAPIV3.ReferenceObject
-        | OpenAPIV3.ArraySchemaObject
-        | OpenAPIV3.NonArraySchemaObject;
-}): { [key: string]: Validator<SyncValidation> } => {
+export const schemasToValidators = (
+    schemas: {
+        [key: string]:
+            | OpenAPIV3.ArraySchemaObject
+            | OpenAPIV3.NonArraySchemaObject
+            | OpenAPIV3.ReferenceObject;
+    },
+    document: OpenAPIV3.Document
+): { [key: string]: Validator<SyncValidation> } => {
     return Object.keys(schemas).reduce((acc, key) => {
-        const schema = schemas[key] as Schema;
+        const schema = schemas[key];
         return {
             ...acc,
-            [key]: schemaToValidator(schema),
+            [key]: schemaToValidator(schema, document),
         };
     }, {});
 };
 
-export const openApiValidator = async (path: string) => {
-    const schemas = await getOpenApiSchema(path);
+export const parseOpenApiDocument = (
+    document: OpenAPIV3.Document
+): { [key: string]: Validator<SyncValidation> } => {
+    return schemasToValidators(document.components.schemas, document);
+};
 
-    return schemasToValidators(schemas);
+export const openApiValidator = async (path: string) => {
+    const document = await getOpenApiSchema(path);
+
+    return parseOpenApiDocument(document);
 };

@@ -1,168 +1,12 @@
 import { resolve } from "path";
-import { OpenAPIV3 } from "openapi-types";
 
-import { getOpenApiSchema, schemaToValidator, Schema } from "./openapi";
-
-const schemas = {
-    Order: {
-        type: "object",
-        properties: {
-            id: {
-                type: "integer",
-                format: "int64",
-            },
-            petId: {
-                type: "integer",
-                format: "int64",
-            },
-            quantity: {
-                type: "integer",
-                format: "int32",
-            },
-            shipDate: {
-                type: "string",
-                format: "date-time",
-            },
-            status: {
-                type: "string",
-                description: "Order Status",
-                enum: ["placed", "approved", "delivered"],
-            },
-            complete: {
-                type: "boolean",
-                default: false,
-            },
-        },
-        xml: {
-            name: "Order",
-        },
-    },
-    Category: {
-        type: "object",
-        properties: {
-            id: {
-                type: "integer",
-                format: "int64",
-            },
-            name: {
-                type: "string",
-            },
-        },
-        xml: {
-            name: "Category",
-        },
-    },
-    User: {
-        type: "object",
-        properties: {
-            id: {
-                type: "integer",
-                format: "int64",
-            },
-            username: {
-                type: "string",
-            },
-            firstName: {
-                type: "string",
-            },
-            lastName: {
-                type: "string",
-            },
-            email: {
-                type: "string",
-            },
-            password: {
-                type: "string",
-            },
-            phone: {
-                type: "string",
-            },
-            userStatus: {
-                type: "integer",
-                format: "int32",
-                description: "User Status",
-            },
-        },
-        xml: {
-            name: "User",
-        },
-    },
-    Tag: {
-        type: "object",
-        properties: {
-            id: {
-                type: "integer",
-                format: "int64",
-            },
-            name: {
-                type: "string",
-            },
-        },
-        xml: {
-            name: "Tag",
-        },
-    },
-    Pet: {
-        type: "object",
-        required: ["name", "photoUrls"],
-        properties: {
-            id: {
-                type: "integer",
-                format: "int64",
-            },
-            category: {
-                $ref: "#/components/schemas/Category",
-            },
-            name: {
-                type: "string",
-                example: "doggie",
-            },
-            photoUrls: {
-                type: "array",
-                xml: {
-                    name: "photoUrl",
-                    wrapped: true,
-                },
-                items: {
-                    type: "string",
-                },
-            },
-            tags: {
-                type: "array",
-                xml: {
-                    name: "tag",
-                    wrapped: true,
-                },
-                items: {
-                    $ref: "#/components/schemas/Tag",
-                },
-            },
-            status: {
-                type: "string",
-                description: "pet status in the store",
-                enum: ["available", "pending", "sold"],
-            },
-        },
-        xml: {
-            name: "Pet",
-        },
-    },
-    ApiResponse: {
-        type: "object",
-        properties: {
-            code: {
-                type: "integer",
-                format: "int32",
-            },
-            type: {
-                type: "string",
-            },
-            message: {
-                type: "string",
-            },
-        },
-    },
-};
+import {
+    getOpenApiSchema,
+    schemaToValidator,
+    Schema,
+    parseOpenApiDocument,
+} from "./openapi";
+import document from "./parsedDocument";
 
 describe("openapi", () => {
     describe("getOpenApiSchema", () => {
@@ -171,14 +15,323 @@ describe("openapi", () => {
                 await getOpenApiSchema(
                     resolve(__dirname, "./openapiSchema.json")
                 )
-            ).toEqual(schemas);
+            ).toEqual(document);
         });
         it("should open and parse openApiSchema yml extracting components Schema", async () => {
             expect(
                 await getOpenApiSchema(
                     resolve(__dirname, "./openapiSchema.yml")
                 )
-            ).toEqual(schemas);
+            ).toEqual(document);
+        });
+    });
+
+    describe("parseOpenApiDocument", () => {
+        it("should create an Order validator from document", () => {
+            const validators = parseOpenApiDocument(document);
+
+            expect(validators.Order).toBeDefined();
+            expect(
+                validators.Order.check({
+                    id: 42,
+                    petId: 7,
+                    quantity: 101,
+                    shipDate: "1961-01-25T00:00:00Z",
+                    status: "delivered",
+                    complete: true,
+                })
+            ).toBe(undefined);
+            expect(validators.Order.check(null)).toEqual([
+                {
+                    key: ["id"],
+                    message: "value must be a number",
+                    value: null,
+                },
+                {
+                    key: ["id"],
+                    message: "value must be an integer",
+                    value: null,
+                },
+                {
+                    key: ["petId"],
+                    message: "value must be a number",
+                    value: null,
+                },
+                {
+                    key: ["petId"],
+                    message: "value must be an integer",
+                    value: null,
+                },
+                {
+                    key: ["quantity"],
+                    message: "value must be a number",
+                    value: null,
+                },
+                {
+                    key: ["quantity"],
+                    message: "value must be an integer",
+                    value: null,
+                },
+                {
+                    key: ["shipDate"],
+                    message: "value must be a string",
+                    value: null,
+                },
+                {
+                    key: ["shipDate"],
+                    message:
+                        "value must be a valid date-time string (yyyy-MM-ddThh:mm:ssZ)",
+                    value: null,
+                },
+                {
+                    key: ["status"],
+                    message: "value must be a string",
+                    value: null,
+                },
+                {
+                    key: ["status"],
+                    message:
+                        'value must be one of "placed", "approved", "delivered"',
+                    value: null,
+                },
+                {
+                    key: ["complete"],
+                    message: "value must be a boolean",
+                    value: null,
+                },
+            ]);
+        });
+
+        it("should create an Category validator from document", () => {
+            const validators = parseOpenApiDocument(document);
+
+            expect(validators.Category).toBeDefined();
+            expect(
+                validators.Category.check({
+                    id: 42,
+                    name: "cat",
+                })
+            ).toBe(undefined);
+            expect(validators.Category.check(null)).toEqual([
+                {
+                    key: ["id"],
+                    message: "value must be a number",
+                    value: null,
+                },
+                {
+                    key: ["id"],
+                    message: "value must be an integer",
+                    value: null,
+                },
+                {
+                    key: ["name"],
+                    message: "value must be a string",
+                    value: null,
+                },
+            ]);
+        });
+
+        it("should create an User validator from document", () => {
+            const validators = parseOpenApiDocument(document);
+
+            expect(validators.User).toBeDefined();
+            expect(
+                validators.User.check({
+                    id: 42,
+                    username: "john",
+                    firstName: "john",
+                    lastName: "doe",
+                    email: "john@gmail.com",
+                    password: "secret",
+                    phone: "00000000",
+                    userStatus: 0,
+                })
+            ).toBe(undefined);
+            expect(validators.User.check(null)).toEqual([
+                {
+                    key: ["id"],
+                    message: "value must be a number",
+                    value: null,
+                },
+                {
+                    key: ["id"],
+                    message: "value must be an integer",
+                    value: null,
+                },
+                {
+                    key: ["username"],
+                    message: "value must be a string",
+                    value: null,
+                },
+                {
+                    key: ["firstName"],
+                    message: "value must be a string",
+                    value: null,
+                },
+                {
+                    key: ["lastName"],
+                    message: "value must be a string",
+                    value: null,
+                },
+                {
+                    key: ["email"],
+                    message: "value must be a string",
+                    value: null,
+                },
+                {
+                    key: ["password"],
+                    message: "value must be a string",
+                    value: null,
+                },
+                {
+                    key: ["phone"],
+                    message: "value must be a string",
+                    value: null,
+                },
+                {
+                    key: ["userStatus"],
+                    message: "value must be a number",
+                    value: null,
+                },
+                {
+                    key: ["userStatus"],
+                    message: "value must be an integer",
+                    value: null,
+                },
+            ]);
+        });
+
+        it("should create a Tag validator from document", () => {
+            const validators = parseOpenApiDocument(document);
+
+            expect(validators.Tag).toBeDefined();
+            expect(
+                validators.Tag.check({
+                    id: 42,
+                    name: "cat",
+                })
+            ).toBe(undefined);
+            expect(validators.Tag.check(null)).toEqual([
+                {
+                    key: ["id"],
+                    message: "value must be a number",
+                    value: null,
+                },
+                {
+                    key: ["id"],
+                    message: "value must be an integer",
+                    value: null,
+                },
+                {
+                    key: ["name"],
+                    message: "value must be a string",
+                    value: null,
+                },
+            ]);
+        });
+
+        it("should create a Pet validator from document", () => {
+            const validators = parseOpenApiDocument(document);
+
+            expect(validators.Pet).toBeDefined();
+            expect(
+                validators.Pet.check({
+                    id: 42,
+                    name: "rantanplan",
+                    category: { id: 7, name: "dog" },
+                    photoUrls: [],
+                    tags: [],
+                    status: "pending",
+                })
+            ).toBe(undefined);
+            expect(validators.Pet.check(null)).toEqual([
+                {
+                    key: ["id"],
+                    message: "value must be a number",
+                    value: null,
+                },
+                {
+                    key: ["id"],
+                    message: "value must be an integer",
+                    value: null,
+                },
+                {
+                    key: ["category", "id"],
+                    message: "value must be a number",
+                    value: null,
+                },
+                {
+                    key: ["category", "id"],
+                    message: "value must be an integer",
+                    value: null,
+                },
+                {
+                    key: ["category", "name"],
+                    message: "value must be a string",
+                    value: null,
+                },
+                {
+                    key: ["name"],
+                    message: "value must be a string",
+                    value: null,
+                },
+                {
+                    key: ["photoUrls"],
+                    message: "value must be an array",
+                    value: null,
+                },
+                {
+                    key: ["tags"],
+                    message: "value must be an array",
+                    value: null,
+                },
+                {
+                    key: ["status"],
+                    message: "value must be a string",
+                    value: null,
+                },
+                {
+                    key: ["status"],
+                    message:
+                        'value must be one of "available", "pending", "sold"',
+                    value: null,
+                },
+            ]);
+        });
+
+        it("should create an ApiResponse validator from document", () => {
+            const validators = parseOpenApiDocument(document);
+
+            expect(validators.ApiResponse).toBeDefined();
+            expect(
+                validators.ApiResponse.check({
+                    code: 500,
+                    type: "Server error",
+                    message: "Something went wrong",
+                })
+            ).toBe(undefined);
+            expect(validators.ApiResponse.check(null)).toEqual([
+                {
+                    key: ["code"],
+                    message: "value must be a number",
+                    value: null,
+                },
+                {
+                    key: ["code"],
+                    message: "value must be an integer",
+                    value: null,
+                },
+                {
+                    key: ["type"],
+                    message: "value must be a string",
+                    value: null,
+                },
+                {
+                    key: ["message"],
+                    message: "value must be a string",
+                    value: null,
+                },
+            ]);
         });
     });
 
@@ -189,7 +342,7 @@ describe("openapi", () => {
                     type: "string",
                 };
 
-                const validator = schemaToValidator(schema);
+                const validator = schemaToValidator(schema, document);
 
                 expect(validator.check("A simple string")).toBe(undefined);
                 expect(validator.check(45)).toEqual([
@@ -203,7 +356,7 @@ describe("openapi", () => {
                     format: "date-time",
                 };
 
-                const validator = schemaToValidator(schema);
+                const validator = schemaToValidator(schema, document);
 
                 expect(validator.check("2017-07-21T17:32:28Z")).toBe(undefined);
                 expect(validator.check("A simple string")).toEqual([
@@ -229,7 +382,7 @@ describe("openapi", () => {
                     format: "date",
                 };
 
-                const validator = schemaToValidator(schema);
+                const validator = schemaToValidator(schema, document);
 
                 expect(validator.check("2017-07-21")).toBe(undefined);
                 expect(validator.check("A simple string")).toEqual([
@@ -255,7 +408,7 @@ describe("openapi", () => {
                     format: "binary",
                 };
 
-                const validator = schemaToValidator(schema);
+                const validator = schemaToValidator(schema, document);
 
                 expect(validator.check("011110")).toBe(undefined);
                 expect(validator.check("A simple string")).toEqual([
@@ -279,7 +432,7 @@ describe("openapi", () => {
                     format: "byte",
                 };
 
-                const validator = schemaToValidator(schema);
+                const validator = schemaToValidator(schema, document);
 
                 expect(validator.check("U3dhZ2dlciByb2Nrcw==")).toBe(undefined);
                 expect(validator.check("A simple string")).toEqual([
@@ -303,7 +456,7 @@ describe("openapi", () => {
                     enum: ["one", "two", "three"],
                 };
 
-                const validator = schemaToValidator(schema);
+                const validator = schemaToValidator(schema, document);
 
                 expect(validator.check("one")).toBe(undefined);
                 expect(validator.check("two")).toBe(undefined);
@@ -329,7 +482,7 @@ describe("openapi", () => {
                     pattern: "@.*?\\.",
                 };
 
-                const validator = schemaToValidator(schema);
+                const validator = schemaToValidator(schema, document);
 
                 expect(validator.check("test@gmail.com")).toBe(undefined);
                 expect(validator.check("A simple string")).toEqual([
@@ -353,7 +506,7 @@ describe("openapi", () => {
                     minLength: 20,
                 };
 
-                const validator = schemaToValidator(schema);
+                const validator = schemaToValidator(schema, document);
 
                 expect(validator.check("A string that pass validation")).toBe(
                     undefined
@@ -379,7 +532,7 @@ describe("openapi", () => {
                     maxLength: 50,
                 };
 
-                const validator = schemaToValidator(schema);
+                const validator = schemaToValidator(schema, document);
 
                 expect(validator.check("A string that pass validation")).toBe(
                     undefined
@@ -414,7 +567,7 @@ describe("openapi", () => {
                     maxLength: 5,
                 };
 
-                const validator = schemaToValidator(schema);
+                const validator = schemaToValidator(schema, document);
 
                 expect(validator.check("0001")).toBe(undefined);
                 expect(validator.check(45)).toEqual([
@@ -445,7 +598,7 @@ describe("openapi", () => {
                 const schema: Schema = {
                     type: "number",
                 };
-                const validator = schemaToValidator(schema);
+                const validator = schemaToValidator(schema, document);
 
                 expect(validator.check(42.5)).toBe(undefined);
                 expect(validator.check("A string")).toEqual([
@@ -460,7 +613,7 @@ describe("openapi", () => {
                     type: "number",
                     minimum: 10,
                 };
-                const validator = schemaToValidator(schema);
+                const validator = schemaToValidator(schema, document);
 
                 expect(validator.check(42.5)).toBe(undefined);
                 expect(validator.check(10)).toBe(undefined);
@@ -474,7 +627,7 @@ describe("openapi", () => {
                     minimum: 10,
                     exclusiveMinimum: true,
                 };
-                const validator = schemaToValidator(schema);
+                const validator = schemaToValidator(schema, document);
 
                 expect(validator.check(42.5)).toBe(undefined);
                 expect(validator.check(10)).toEqual([
@@ -489,7 +642,7 @@ describe("openapi", () => {
                     type: "number",
                     maximum: 100,
                 };
-                const validator = schemaToValidator(schema);
+                const validator = schemaToValidator(schema, document);
 
                 expect(validator.check(42.5)).toBe(undefined);
                 expect(validator.check(100)).toBe(undefined);
@@ -503,7 +656,7 @@ describe("openapi", () => {
                     maximum: 100,
                     exclusiveMaximum: true,
                 };
-                const validator = schemaToValidator(schema);
+                const validator = schemaToValidator(schema, document);
 
                 expect(validator.check(42.5)).toBe(undefined);
                 expect(validator.check(100)).toEqual([
@@ -519,7 +672,7 @@ describe("openapi", () => {
                 const schema: Schema = {
                     type: "integer",
                 };
-                const validator = schemaToValidator(schema);
+                const validator = schemaToValidator(schema, document);
 
                 expect(validator.check(42)).toBe(undefined);
                 expect(validator.check(42.5)).toEqual([
@@ -539,7 +692,7 @@ describe("openapi", () => {
                     type: "integer",
                     minimum: 10,
                 };
-                const validator = schemaToValidator(schema);
+                const validator = schemaToValidator(schema, document);
 
                 expect(validator.check(42)).toBe(undefined);
                 expect(validator.check(10)).toBe(undefined);
@@ -554,7 +707,7 @@ describe("openapi", () => {
                     minimum: 10,
                     exclusiveMinimum: true,
                 };
-                const validator = schemaToValidator(schema);
+                const validator = schemaToValidator(schema, document);
 
                 expect(validator.check(42)).toBe(undefined);
                 expect(validator.check(10)).toEqual([
@@ -570,7 +723,7 @@ describe("openapi", () => {
                     type: "integer",
                     maximum: 100,
                 };
-                const validator = schemaToValidator(schema);
+                const validator = schemaToValidator(schema, document);
 
                 expect(validator.check(42)).toBe(undefined);
                 expect(validator.check(100)).toBe(undefined);
@@ -585,7 +738,7 @@ describe("openapi", () => {
                     maximum: 100,
                     exclusiveMaximum: true,
                 };
-                const validator = schemaToValidator(schema);
+                const validator = schemaToValidator(schema, document);
 
                 expect(validator.check(42)).toBe(undefined);
                 expect(validator.check(100)).toEqual([
@@ -603,7 +756,7 @@ describe("openapi", () => {
                 const schema: Schema = {
                     type: "boolean",
                 };
-                const validator = schemaToValidator(schema);
+                const validator = schemaToValidator(schema, document);
 
                 expect(validator.check(true)).toBe(undefined);
                 expect(validator.check(false)).toBe(undefined);
@@ -625,7 +778,7 @@ describe("openapi", () => {
                     },
                 };
 
-                const validator = schemaToValidator(schema);
+                const validator = schemaToValidator(schema, document);
 
                 expect(validator.check([])).toBe(undefined);
                 expect(validator.check(["foo", "bar"])).toBe(undefined);
@@ -661,7 +814,7 @@ describe("openapi", () => {
                     },
                 };
 
-                const validator = schemaToValidator(schema);
+                const validator = schemaToValidator(schema, document);
 
                 expect(
                     validator.check({
