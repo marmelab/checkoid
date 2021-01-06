@@ -1,7 +1,7 @@
 import * as SwaggerParser from "@apidevtools/swagger-parser";
 import { OpenAPIV3 } from "openapi-types";
 
-import { Validator } from "../Validator";
+import { Validator, validator } from "../Validator";
 import { SyncValidation } from "../Validation";
 import { path } from "../utils";
 
@@ -30,7 +30,7 @@ import {
 import { isBoolean } from "../validators/boolean";
 
 import { arrayOf } from "../validators/array";
-import { shape } from "../validators/object";
+import { shape, isObject } from "../validators/object";
 
 export type Schema = OpenAPIV3.SchemaObject;
 
@@ -110,6 +110,12 @@ export const schemaToValidator = (
 
         return schemaToValidator(path(keys, document), document);
     }
+    if (!schema.type) {
+        // @TODO handle schema with no type but oneOf, anyOf, allOf, or not props
+        if (schema.allOf) {
+            return validator(() => undefined);
+        }
+    }
     switch (schema.type) {
         case "string": {
             return configStringValidator(schema);
@@ -127,10 +133,13 @@ export const schemaToValidator = (
                     document
                 )
             );
-        case "object":
-            return shape(schemasToValidators(schema.properties, document));
+        case "object": {
+            if (schema.properties) {
+                return shape(schemasToValidators(schema.properties, document));
+            }
+            return isObject;
+        }
         default:
-            // @TODO handle schema with no type but oneOf, anyOf, allOf, or not props
             throw new Error("Unexpected schema type");
     }
 };
