@@ -111,10 +111,18 @@ export const schemaToValidator = (
         return schemaToValidator(path(keys, document), document);
     }
     if (!schema.type) {
-        // @TODO handle schema with no type but oneOf, anyOf, allOf, or not props
         if (schema.allOf) {
-            return validator(() => undefined);
+            return schema.allOf.reduce(
+                (finalValidator, schema) => {
+                    return finalValidator.and(
+                        schemaToValidator(schema, document)
+                    );
+                },
+                validator(() => undefined)
+            );
         }
+        // @TODO handle schema with no type but oneOf, anyOf, or not props
+        throw new Error("Unhandled schema");
     }
     switch (schema.type) {
         case "string": {

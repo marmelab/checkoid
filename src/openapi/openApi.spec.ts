@@ -891,5 +891,45 @@ describe("openapi", () => {
                 ]);
             });
         });
+
+        describe("allof schema", () => {
+            it("should handle schema with allOf prop", () => {
+                const schema: Schema = {
+                    allOf: [
+                        {
+                            type: "object",
+                            properties: {
+                                id: {
+                                    type: "string",
+                                },
+                            },
+                        },
+                        {
+                            type: "object",
+                            properties: {
+                                name: {
+                                    type: "string",
+                                },
+                            },
+                        },
+                    ],
+                };
+
+                const validator = schemaToValidator(schema, document);
+
+                expect(validator.check(null)).toEqual([
+                    {
+                        key: ["id"],
+                        message: "value must be a string",
+                        value: null,
+                    },
+                    {
+                        key: ["name"],
+                        message: "value must be a string",
+                        value: null,
+                    },
+                ]);
+            });
+        });
     });
 });
