@@ -597,5 +597,23 @@ describe("openapi", () => {
                 ]);
             });
         });
+
+        describe("boolean type", () => {
+            it("should handle type boolean schema", () => {
+                const schema: Schema = {
+                    type: "boolean",
+                };
+                const validator = schemaToValidator(schema);
+
+                expect(validator.check(true)).toBe(undefined);
+                expect(validator.check(false)).toBe(undefined);
+                expect(validator.check("false")).toEqual([
+                    { message: "value must be a boolean", value: "false" },
+                ]);
+                expect(validator.check(0)).toEqual([
+                    { message: "value must be a boolean", value: 0 },
+                ]);
+            });
+        });
     });
 });
