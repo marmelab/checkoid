@@ -1,5 +1,7 @@
 import { resolve } from "path";
-import { getOpenApiSchemas } from "./openapi";
+import { OpenAPIV3 } from "openapi-types";
+
+import { getOpenApiSchema, schemaToValidator, Schema } from "./openapi";
 
 const schemas = {
     Order: {
@@ -163,20 +165,183 @@ const schemas = {
 };
 
 describe("openapi", () => {
-    describe("getOpenApiSchemas", () => {
+    describe("getOpenApiSchema", () => {
         it("should open and parse openApiSchema json extracting components Schema", async () => {
             expect(
-                await getOpenApiSchemas(
+                await getOpenApiSchema(
                     resolve(__dirname, "./openapiSchema.json")
                 )
             ).toEqual(schemas);
         });
         it("should open and parse openApiSchema yml extracting components Schema", async () => {
             expect(
-                await getOpenApiSchemas(
+                await getOpenApiSchema(
                     resolve(__dirname, "./openapiSchema.yml")
                 )
             ).toEqual(schemas);
+        });
+    });
+
+    describe("schemaToValidator", () => {
+        it("should handle string type schema", () => {
+            const schema: Schema = {
+                type: "string",
+            };
+
+            const validator = schemaToValidator(schema);
+
+            expect(validator.check("A simple string")).toBe(undefined);
+            expect(validator.check(45)).toEqual([
+                { message: "value must be a string", value: 45 },
+            ]);
+        });
+
+        it("should handle string type schema with format date-time", () => {
+            const schema: Schema = {
+                type: "string",
+                format: "date-time",
+            };
+
+            const validator = schemaToValidator(schema);
+
+            expect(validator.check("2017-07-21T17:32:28Z")).toBe(undefined);
+            expect(validator.check("A simple string")).toEqual([
+                {
+                    message:
+                        "value must be a valid date-time string (yyyy-MM-ddThh:mm:ssZ)",
+                    value: "A simple string",
+                },
+            ]);
+            expect(validator.check(45)).toEqual([
+                { message: "value must be a string", value: 45 },
+                {
+                    message:
+                        "value must be a valid date-time string (yyyy-MM-ddThh:mm:ssZ)",
+                    value: 45,
+                },
+            ]);
+        });
+
+        it("should handle string type schema with format date", () => {
+            const schema: Schema = {
+                type: "string",
+                format: "date",
+            };
+
+            const validator = schemaToValidator(schema);
+
+            expect(validator.check("2017-07-21")).toBe(undefined);
+            expect(validator.check("A simple string")).toEqual([
+                {
+                    message: "value must be a valid date string (yyyy-MM-dd)",
+                    value: "A simple string",
+                },
+            ]);
+            expect(validator.check(45)).toEqual([
+                { message: "value must be a string", value: 45 },
+                {
+                    message: "value must be a valid date string (yyyy-MM-dd)",
+                    value: 45,
+                },
+            ]);
+        });
+
+        it("should handle string type schema with format binary", () => {
+            const schema: Schema = {
+                type: "string",
+                format: "binary",
+            };
+
+            const validator = schemaToValidator(schema);
+
+            expect(validator.check("011110")).toBe(undefined);
+            expect(validator.check("A simple string")).toEqual([
+                {
+                    message: "value must be a valid binary string",
+                    value: "A simple string",
+                },
+            ]);
+            expect(validator.check(45)).toEqual([
+                { message: "value must be a string", value: 45 },
+                {
+                    message: "value must be a valid binary string",
+                    value: 45,
+                },
+            ]);
+        });
+
+        it("should handle string type schema with format byte", () => {
+            const schema: Schema = {
+                type: "string",
+                format: "byte",
+            };
+
+            const validator = schemaToValidator(schema);
+
+            expect(validator.check("U3dhZ2dlciByb2Nrcw==")).toBe(undefined);
+            expect(validator.check("A simple string")).toEqual([
+                {
+                    message: "value must be a valid base64 string",
+                    value: "A simple string",
+                },
+            ]);
+            expect(validator.check(45)).toEqual([
+                { message: "value must be a string", value: 45 },
+                {
+                    message: "value must be a valid base64 string",
+                    value: 45,
+                },
+            ]);
+        });
+
+        it("should handle string type schema with enum", () => {
+            const schema: Schema = {
+                type: "string",
+                enum: ["one", "two", "three"],
+            };
+
+            const validator = schemaToValidator(schema);
+
+            expect(validator.check("one")).toBe(undefined);
+            expect(validator.check("two")).toBe(undefined);
+            expect(validator.check("three")).toBe(undefined);
+            expect(validator.check("four")).toEqual([
+                {
+                    message: 'value must be one of "one", "two", "three"',
+                    value: "four",
+                },
+            ]);
+            expect(validator.check(45)).toEqual([
+                { message: "value must be a string", value: 45 },
+                {
+                    message: 'value must be one of "one", "two", "three"',
+                    value: 45,
+                },
+            ]);
+        });
+
+        it("should handle string type schema with pattern", () => {
+            const schema: Schema = {
+                type: "string",
+                pattern: "@.*?\\.",
+            };
+
+            const validator = schemaToValidator(schema);
+
+            expect(validator.check("test@gmail.com")).toBe(undefined);
+            expect(validator.check("A simple string")).toEqual([
+                {
+                    message: "value must match pattern /@.*?\\./",
+                    value: "A simple string",
+                },
+            ]);
+            expect(validator.check(45)).toEqual([
+                { message: "value must be a string", value: 45 },
+                {
+                    message: "value must match pattern /@.*?\\./",
+                    value: 45,
+                },
+            ]);
         });
     });
 });

@@ -29,7 +29,7 @@ import { isBoolean } from "../validators/boolean";
 import { arrayOf } from "../validators/array";
 import { shape } from "../validators/object";
 
-type Schema = OpenAPIV3.SchemaObject;
+export type Schema = OpenAPIV3.SchemaObject;
 
 export const getOpenApiSchema = async (path: string) => {
     const schema = (await SwaggerParser.parse(path)) as OpenAPIV3.Document;
@@ -72,10 +72,10 @@ export const schemaToValidator = (
                     return isString.and(base64);
                 default: {
                     if (schema.enum) {
-                        isString.and(oneOf(schema.enum));
+                        return isString.and(oneOf(schema.enum));
                     }
                     if (schema.pattern) {
-                        isString.and(match(new RegExp(schema.pattern)));
+                        return isString.and(match(new RegExp(schema.pattern)));
                     }
                     return isString;
                 }
