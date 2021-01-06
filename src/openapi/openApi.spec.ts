@@ -931,5 +931,55 @@ describe("openapi", () => {
                 ]);
             });
         });
+
+        describe("anyof schema", () => {
+            it("should handle schema with anyOf prop", () => {
+                const schema: Schema = {
+                    anyOf: [
+                        {
+                            type: "object",
+                            properties: {
+                                id: {
+                                    type: "string",
+                                },
+                            },
+                        },
+                        {
+                            type: "object",
+                            properties: {
+                                name: {
+                                    type: "string",
+                                },
+                            },
+                        },
+                    ],
+                };
+
+                const validator = schemaToValidator(schema, document);
+
+                expect(validator.check(null)).toEqual([
+                    {
+                        message: "value must pass at least one validation",
+                        value: null,
+                    },
+                    {
+                        key: ["id"],
+                        message: "value must be a string",
+                        value: null,
+                    },
+                    {
+                        key: ["name"],
+                        message: "value must be a string",
+                        value: null,
+                    },
+                ]);
+
+                expect(validator.check({ id: "id" })).toBe(undefined);
+                expect(validator.check({ name: "name" })).toBe(undefined);
+                expect(validator.check({ id: "id", name: "name" })).toBe(
+                    undefined
+                );
+            });
+        });
     });
 });
