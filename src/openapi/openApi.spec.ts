@@ -634,5 +634,109 @@ describe("openapi", () => {
                 ]);
             });
         });
+
+        describe("object type", () => {
+            it("should handle type array schema", () => {
+                const schema: Schema = {
+                    type: "object",
+                    properties: {
+                        id: {
+                            type: "integer",
+                        },
+                        username: {
+                            type: "string",
+                        },
+                        email: {
+                            type: "string",
+                            pattern: "@.*?\\.",
+                        },
+                        password: {
+                            type: "string",
+                            minLength: 7,
+                        },
+                        sex: {
+                            type: "string",
+                            enum: ["M", "F", "N"],
+                        },
+                    },
+                };
+
+                const validator = schemaToValidator(schema);
+
+                expect(
+                    validator.check({
+                        id: 42,
+                        username: "john",
+                        email: "john@gmail.com",
+                        password: "47874fd5sq4f5z7fr",
+                        sex: "M",
+                    })
+                ).toBe(undefined);
+
+                expect(
+                    validator.check({
+                        id: 42,
+                        username: "john",
+                        email: "john@gmail.com",
+                        password: "secret",
+                        sex: "M",
+                    })
+                ).toEqual([
+                    {
+                        key: ["password"],
+                        message: "value must be at least 7 characters long",
+                        value: "secret",
+                    },
+                ]);
+                expect(validator.check("john")).toEqual([
+                    { message: "value must be an object", value: "john" },
+                    {
+                        key: ["id"],
+                        message: "value must be a number",
+                        value: undefined,
+                    },
+                    {
+                        key: ["id"],
+                        message: "value must be an integer",
+                        value: undefined,
+                    },
+                    {
+                        key: ["username"],
+                        message: "value must be a string",
+                        value: undefined,
+                    },
+                    {
+                        key: ["email"],
+                        message: "value must be a string",
+                        value: undefined,
+                    },
+                    {
+                        key: ["email"],
+                        message: "value must match pattern /@.*?\\./",
+                        value: undefined,
+                    },
+                    {
+                        key: ["password"],
+                        message: "value must be a string",
+                        value: undefined,
+                    },
+                    {
+                        key: ["password"],
+                        message: "value must be at least 7 characters long",
+                        value: undefined,
+                    },
+                    {
+                        key: ["sex"],
+                        message: "value must be a string",
+                        value: undefined,
+                    },
+                    {
+                        key: ["sex"],
+                        message: 'value must be one of "M", "F", "N"',
+                        value: undefined,
+                    },
+                ]);
+            });
+        });
     });
 });
