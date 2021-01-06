@@ -41,7 +41,7 @@ export const getOpenApiSchema = async (path: string) => {
 
 export const configureNumberValidator = (schema: Schema) => {
     let numberValidator =
-        schema.format === "number" ? isNumber : isNumber.and(isInteger);
+        schema.type === "number" ? isNumber : isNumber.and(isInteger);
     if (schema.minimum) {
         numberValidator = schema.exclusiveMinimum
             ? numberValidator.and(isGt(schema.minimum))
@@ -116,6 +116,9 @@ export const schemaToValidator = (
             );
         case "object":
             return shape(schemasToValidators(schema.properties));
+        default:
+            // @TODO handle schema with no type but oneOf, anyOf, allOf, or not props
+            throw new Error("Unexpected schema type");
     }
 };
 
