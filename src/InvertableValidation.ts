@@ -25,6 +25,13 @@ interface ValidValidation {
         other: ValidValidation | InvalidValidation | AsyncValidation
     ): ValidValidation | InvalidValidation | AsyncValidation;
     not(): InvalidValidation;
+    format: (
+        fn: (
+            invalidResult: ValidationResult,
+            index: number,
+            all: ValidationResult[]
+        ) => ValidationResult
+    ) => ValidValidation;
     getResult: () => undefined;
 }
 interface InvalidValidation {
@@ -47,6 +54,13 @@ interface InvalidValidation {
         other: ValidValidation | InvalidValidation | AsyncValidation
     ): ValidValidation | InvalidValidation | AsyncValidation;
     not(): ValidValidation;
+    format: (
+        fn: (
+            invalidResult: ValidationResult,
+            index: number,
+            all: ValidationResult[]
+        ) => ValidationResult
+    ) => InvalidValidation;
     getResult: () => ValidationResult[];
 }
 
@@ -78,6 +92,13 @@ interface AsyncValidation {
         other: ValidValidation | InvalidValidation | AsyncValidation
     ): AsyncValidation;
     not(): AsyncValidation;
+    format: (
+        fn: (
+            invalidResult: ValidationResult,
+            index: number,
+            all: ValidationResult[]
+        ) => ValidationResult
+    ) => AsyncValidation;
     getResult: () => Promise<void | ValidationResult[]>;
 }
 
@@ -166,6 +187,8 @@ export const createValidValidation = (
     not() {
         return createInvalidValidation(validResults, invalidResults);
     },
+    format: (fn) =>
+        createValidValidation(validResults.map(fn), invalidResults.map(fn)),
     getResult() {
         return undefined;
     },
@@ -236,6 +259,8 @@ export const createInvalidValidation = (
     not() {
         return createValidValidation(invalidResults, validResults);
     },
+    format: (fn) =>
+        createInvalidValidation(invalidResults.map(fn), validResults.map(fn)),
     getResult() {
         return invalidResults;
     },
@@ -289,6 +314,10 @@ export const createAsyncValidation = (fork: Fork): AsyncValidation => ({
             }, reject)
         );
     },
+    format: (fn) =>
+        createAsyncValidation((resolve, reject) =>
+            fork((result) => resolve(result.format(fn)), reject)
+        ),
     getResult() {
         return new Promise(
             fork
