@@ -7,8 +7,7 @@ export interface ValidationResult {
 
 interface ValidValidation {
     isValid: true;
-    validResults: ValidationResult[];
-    invalidResults: ValidationResult[];
+    results: ValidationResult[];
     fork: undefined;
     and(
         other: ValidValidation | InvalidValidation | AsyncValidation
@@ -36,8 +35,7 @@ interface ValidValidation {
 }
 interface InvalidValidation {
     isValid: false;
-    validResults: ValidationResult[];
-    invalidResults: ValidationResult[];
+    results: ValidationResult[];
     fork: undefined;
     and(
         other: ValidValidation | InvalidValidation | AsyncValidation
@@ -79,8 +77,7 @@ type Fork = (
 
 interface AsyncValidation {
     isValid: undefined;
-    validResults: undefined;
-    invalidResults: undefined;
+    results: undefined;
     fork: Fork;
     and(
         other: ValidValidation | InvalidValidation | AsyncValidation
@@ -115,161 +112,122 @@ const isAsyncValidation = (
 ): value is AsyncValidation => !!value.fork;
 
 export const createValidValidation = (
-    validResults: ValidationResult[],
-    invalidResults: ValidationResult[] = []
+    results: ValidationResult[]
 ): ValidValidation => ({
-    validResults,
-    invalidResults,
+    results,
     isValid: true,
     fork: undefined,
     and(other: any): any {
         if (isAsyncValidation(other)) {
             other;
             return createAsyncValidation
-                .of(createValidValidation(validResults, invalidResults))
+                .of(createValidValidation(results))
                 .and(other) as AsyncValidation;
         }
         if (isInvalidValidation(other)) {
-            return createInvalidValidation(
-                invalidResults.concat(other.invalidResults),
-                validResults.concat(other.validResults)
-            );
+            return createInvalidValidation(results.concat(other.results));
         }
 
         if (isValidValidation(other)) {
-            return createValidValidation(
-                validResults.concat(other.validResults),
-                invalidResults.concat(other.invalidResults)
-            );
+            return createValidValidation(results.concat(other.results));
         }
     },
     or(other: any): any {
         if (isAsyncValidation(other)) {
             other;
             return createAsyncValidation
-                .of(createValidValidation(validResults, invalidResults))
+                .of(createValidValidation(results))
                 .or(other) as AsyncValidation;
         }
         if (isInvalidValidation(other)) {
-            return createValidValidation(
-                validResults.concat(other.validResults),
-                invalidResults.concat(other.invalidResults)
-            );
+            return createValidValidation(results.concat(other.results));
         }
         if (isValidValidation(other)) {
-            return createValidValidation(
-                validResults.concat(other.validResults),
-                invalidResults.concat(other.invalidResults)
-            );
+            return createValidValidation(results.concat(other.results));
         }
     },
     xor(other: any): any {
         if (isAsyncValidation(other)) {
             other;
             return createAsyncValidation
-                .of(createValidValidation(validResults, invalidResults))
+                .of(createValidValidation(results))
                 .xor(other) as AsyncValidation;
         }
+
         if (isInvalidValidation(other)) {
-            return createValidValidation(
-                validResults.concat(other.validResults),
-                invalidResults.concat(other.invalidResults)
-            );
+            return createValidValidation(results.concat(other.results));
         }
 
         if (isValidValidation(other)) {
-            return createInvalidValidation(
-                validResults.concat(other.validResults),
-                invalidResults.concat(other.invalidResults)
-            );
+            return createInvalidValidation(results.concat(other.results));
         }
     },
     not() {
-        return createInvalidValidation(validResults, invalidResults);
+        return createInvalidValidation(results);
     },
-    format: (fn) =>
-        createValidValidation(validResults.map(fn), invalidResults.map(fn)),
+    format: (fn) => createValidValidation(results.map(fn)),
     getResult() {
         return undefined;
     },
 });
 
 export const createInvalidValidation = (
-    invalidResults: ValidationResult[],
-    validResults: ValidationResult[] = []
+    results: ValidationResult[]
 ): InvalidValidation => ({
-    validResults,
-    invalidResults,
+    results,
     isValid: false,
     fork: undefined,
     and(other: any): any {
         if (isAsyncValidation(other)) {
             other;
             return createAsyncValidation
-                .of(createInvalidValidation(invalidResults, validResults))
+                .of(createInvalidValidation(results))
                 .and(other) as AsyncValidation;
         }
-        return createInvalidValidation(
-            invalidResults.concat(other.invalidResults),
-            validResults.concat(other.validResults)
-        );
+        return createInvalidValidation(results.concat(other.results));
     },
     or(other: any): any {
         if (isAsyncValidation(other)) {
             other;
             return createAsyncValidation
-                .of(createInvalidValidation(invalidResults, validResults))
+                .of(createInvalidValidation(results))
                 .or(other) as AsyncValidation;
         }
         if (isInvalidValidation(other)) {
-            return createInvalidValidation(
-                invalidResults.concat(other.invalidResults),
-                validResults.concat(other.validResults)
-            );
+            return createInvalidValidation(results.concat(other.results));
         }
 
         if (isValidValidation(other)) {
-            return createValidValidation(
-                validResults.concat(other.validResults),
-                invalidResults.concat(other.invalidResults)
-            );
+            return createValidValidation(results.concat(other.results));
         }
     },
     xor(other: any): any {
         if (isAsyncValidation(other)) {
             other;
             return createAsyncValidation
-                .of(createInvalidValidation(invalidResults, validResults))
+                .of(createInvalidValidation(results))
                 .xor(other) as AsyncValidation;
         }
         if (isInvalidValidation(other)) {
-            return createInvalidValidation(
-                invalidResults.concat(other.invalidResults),
-                validResults.concat(other.validResults)
-            );
+            return createInvalidValidation(results.concat(other.results));
         }
 
         if (isValidValidation(other)) {
-            return createValidValidation(
-                validResults.concat(other.validResults),
-                invalidResults.concat(other.invalidResults)
-            );
+            return createValidValidation(results.concat(other.results));
         }
     },
     not() {
-        return createValidValidation(invalidResults, validResults);
+        return createValidValidation(results);
     },
-    format: (fn) =>
-        createInvalidValidation(invalidResults.map(fn), validResults.map(fn)),
+    format: (fn) => createInvalidValidation(results.map(fn)),
     getResult() {
-        return invalidResults;
+        return results;
     },
 });
 
 export const createAsyncValidation = (fork: Fork): AsyncValidation => ({
     isValid: undefined,
-    validResults: undefined,
-    invalidResults: undefined,
+    results: undefined,
     fork,
     and(other) {
         return createAsyncValidation((resolve, reject) =>
@@ -332,18 +290,10 @@ createAsyncValidation.of = (
     a: ValidValidation | InvalidValidation
 ): AsyncValidation => createAsyncValidation((resolve) => resolve(a));
 // helper to create an AsyncValidation that will resolve to a Valid
-createAsyncValidation.validValidation = (
-    validResults: ValidationResult[],
-    invalidResults: ValidationResult[]
-) =>
-    createAsyncValidation((resolve) =>
-        resolve(createValidValidation(validResults, invalidResults))
-    );
+createAsyncValidation.validValidation = (results: ValidationResult[]) =>
+    createAsyncValidation((resolve) => resolve(createValidValidation(results)));
 // helper to create an AsyncValidation that will resolve to an InvalidValidation holding the given InvalidResults
-createAsyncValidation.invalidValidation = (
-    invalidResults: ValidationResult[],
-    validResults: ValidationResult[]
-) =>
+createAsyncValidation.invalidValidation = (results: ValidationResult[]) =>
     createAsyncValidation((resolve) =>
-        resolve(createInvalidValidation(invalidResults, validResults))
+        resolve(createInvalidValidation(results))
     );
