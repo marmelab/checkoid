@@ -297,3 +297,51 @@ createAsyncValidation.invalidValidation = (results: ValidationResult[]) =>
     createAsyncValidation((resolve) =>
         resolve(createInvalidValidation(results))
     );
+
+/**
+ * Takes a synchronous validation function returnning either a string or undefined
+ * Return a new function that return A ValidValidation when the original function would return undefined
+ * or an invalidValidation when the original function would return a string
+ * */
+export function lift(fn: (x: any) => boolean, predicate: string) {
+    return (value: any) => {
+        const result = fn(value);
+        if (result && (result as any).then) {
+            throw new Error(
+                "lift only accept synchronous function, use asyncLift instead"
+            );
+        }
+
+        return createInvalidValidation([{ predicate, valid: result, value }]);
+    };
+}
+
+/**
+ * Takes an async validation function that resolve to either a string or undefined
+ * Return a new function that return an AsyncValidation
+ * */
+export const asyncLift = (
+    fn: (x: any) => Promise<boolean>,
+    predicate: string
+) => (value: any) =>
+    createAsyncValidation((resolve, reject) => {
+        try {
+            // Promise.resolve will convert the function result to a promise if it is not
+            Promise.resolve(fn(value))
+                .then((result) =>
+                    resolve(
+                        result
+                            ? createInvalidValidation([
+                                  { predicate, valid: result, value },
+                              ])
+                            : createValidValidation([
+                                  { predicate, valid: result, value },
+                              ])
+                    )
+                )
+                .catch(reject);
+        } catch (error) {
+            // catch eventual synchronous error
+            reject(error);
+        }
+    });
