@@ -11,6 +11,7 @@ interface ValidValidation {
     and(
         other: ValidValidation | InvalidValidation
     ): ValidValidation | InvalidValidation;
+    or(other: ValidValidation | InvalidValidation): ValidValidation;
     getResult: () => undefined;
 }
 interface InvalidValidation {
@@ -18,6 +19,9 @@ interface InvalidValidation {
     validResults: ValidationResult[];
     invalidResults: ValidationResult[];
     and(other: ValidValidation | InvalidValidation): InvalidValidation;
+    or(
+        other: ValidValidation | InvalidValidation
+    ): ValidValidation | InvalidValidation;
     getResult: () => ValidationResult[];
 }
 
@@ -44,6 +48,12 @@ export const createValidValidation = (
               )
             : createValidValidation(validResults.concat(other.validResults));
     },
+    or(other: ValidValidation | InvalidValidation) {
+        return createValidValidation(
+            validResults.concat(other.validResults),
+            invalidResults.concat(other.invalidResults)
+        );
+    },
     getResult() {
         return undefined;
     },
@@ -61,6 +71,17 @@ export const createInvalidValidation = (
             invalidResults.concat(other.invalidResults),
             validResults.concat(other.validResults)
         );
+    },
+    or(other: ValidValidation | InvalidValidation) {
+        return isInvalidValidation(other)
+            ? createInvalidValidation(
+                  invalidResults.concat(other.invalidResults),
+                  validResults.concat(other.validResults)
+              )
+            : createValidValidation(
+                  validResults.concat(other.validResults),
+                  invalidResults.concat(other.invalidResults)
+              );
     },
     getResult() {
         return invalidResults;
