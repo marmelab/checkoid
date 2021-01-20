@@ -1,6 +1,7 @@
 export interface ValidationResult {
     value: any;
-    message: string;
+    predicate: string;
+    valid: boolean;
     key?: string[];
 }
 
@@ -11,7 +12,10 @@ interface ValidValidation {
     and(
         other: ValidValidation | InvalidValidation
     ): ValidValidation | InvalidValidation;
+    and(other: ValidValidation): ValidValidation;
+    and(other: InvalidValidation): InvalidValidation;
     or(other: ValidValidation | InvalidValidation): ValidValidation;
+    not(): InvalidValidation;
     getResult: () => undefined;
 }
 interface InvalidValidation {
@@ -22,6 +26,9 @@ interface InvalidValidation {
     or(
         other: ValidValidation | InvalidValidation
     ): ValidValidation | InvalidValidation;
+    or(other: ValidValidation): ValidValidation;
+    or(other: InvalidValidation): InvalidValidation;
+    not(): ValidValidation;
     getResult: () => ValidationResult[];
 }
 
@@ -40,19 +47,37 @@ export const createValidValidation = (
     validResults,
     invalidResults,
     isValid: true,
-    and(other: ValidValidation | InvalidValidation) {
-        return isInvalidValidation(other)
-            ? createInvalidValidation(
-                  other.invalidResults,
-                  validResults.concat(other.validResults)
-              )
-            : createValidValidation(validResults.concat(other.validResults));
+    and(other: any): any {
+        if (isInvalidValidation(other)) {
+            return createInvalidValidation(
+                invalidResults.concat(other.invalidResults),
+                validResults.concat(other.validResults)
+            );
+        }
+
+        if (isValidValidation(other)) {
+            return createValidValidation(
+                validResults.concat(other.validResults),
+                invalidResults.concat(other.invalidResults)
+            );
+        }
     },
     or(other: ValidValidation | InvalidValidation) {
-        return createValidValidation(
-            validResults.concat(other.validResults),
-            invalidResults.concat(other.invalidResults)
-        );
+        if (isInvalidValidation(other)) {
+            return createValidValidation(
+                validResults.concat(other.validResults),
+                invalidResults.concat(other.invalidResults)
+            );
+        }
+        if (isValidValidation(other)) {
+            return createValidValidation(
+                validResults.concat(other.validResults),
+                invalidResults.concat(other.invalidResults)
+            );
+        }
+    },
+    not() {
+        return createInvalidValidation(validResults, invalidResults);
     },
     getResult() {
         return undefined;
@@ -72,16 +97,23 @@ export const createInvalidValidation = (
             validResults.concat(other.validResults)
         );
     },
-    or(other: ValidValidation | InvalidValidation) {
-        return isInvalidValidation(other)
-            ? createInvalidValidation(
-                  invalidResults.concat(other.invalidResults),
-                  validResults.concat(other.validResults)
-              )
-            : createValidValidation(
-                  validResults.concat(other.validResults),
-                  invalidResults.concat(other.invalidResults)
-              );
+    or(other: any): any {
+        if (isInvalidValidation(other)) {
+            return createInvalidValidation(
+                invalidResults.concat(other.invalidResults),
+                validResults.concat(other.validResults)
+            );
+        }
+
+        if (isValidValidation(other)) {
+            return createValidValidation(
+                validResults.concat(other.validResults),
+                invalidResults.concat(other.invalidResults)
+            );
+        }
+    },
+    not() {
+        return createValidValidation(invalidResults, validResults);
     },
     getResult() {
         return invalidResults;
