@@ -1,17 +1,23 @@
-import { valid, invalid, asyncValidation } from "./Validation";
+import {
+    validValidation,
+    invalidValidation,
+    asyncValidation,
+} from "./Validation";
 
 describe("Validation", () => {
     describe("and", () => {
         it("Valid and Valid should keep the first Valid value", () => {
-            const res = valid().and(valid());
+            const res = validValidation().and(validValidation());
 
             expect(res.isValid).toBe(true);
             expect(res.getResult()).toBeUndefined();
         });
 
         it("Valid and Invalid should keep the Invalid value", () => {
-            const res = valid().and(
-                invalid([{ message: "invalid", value: "invalid value" }])
+            const res = validValidation().and(
+                invalidValidation([
+                    { message: "invalid", value: "invalid value" },
+                ])
             );
             expect(res.isValid).toBe(false);
             expect(res.getResult()).toEqual([
@@ -20,7 +26,9 @@ describe("Validation", () => {
         });
 
         it("Valid and asyncValidation(Valid) should return an asyncValidation(Valid)", async () => {
-            const res = valid().and(asyncValidation.valid());
+            const res = validValidation().and(
+                asyncValidation.validValidation()
+            );
             expect(res.fork).toBeDefined();
 
             expect(await res.getResult()).toBe(undefined);
@@ -29,8 +37,8 @@ describe("Validation", () => {
         });
 
         it("Valid and asyncValidation(InValid) should return an asyncValidation(Invalid)", async () => {
-            const res = valid().and(
-                asyncValidation.invalid([
+            const res = validValidation().and(
+                asyncValidation.invalidValidation([
                     { message: "invalid", value: "invalid value" },
                 ])
             );
@@ -42,9 +50,9 @@ describe("Validation", () => {
         });
 
         it("InValid and Valid should keep the Invalid value", () => {
-            const res = invalid([
+            const res = invalidValidation([
                 { message: "invalid", value: "invalid value" },
-            ]).and(valid());
+            ]).and(validValidation());
             expect(res.isValid).toBe(false);
             expect(res.getResult()).toEqual([
                 { message: "invalid", value: "invalid value" },
@@ -52,9 +60,13 @@ describe("Validation", () => {
         });
 
         it("Invalid and Invalid should concat the two Invalid value", () => {
-            const res = invalid([
+            const res = invalidValidation([
                 { message: "invalid1", value: "invalid value" },
-            ]).and(invalid([{ message: "invalid2", value: "invalid value" }]));
+            ]).and(
+                invalidValidation([
+                    { message: "invalid2", value: "invalid value" },
+                ])
+            );
             expect(res.isValid).toBe(false);
             expect(res.getResult()).toEqual([
                 { message: "invalid1", value: "invalid value" },
@@ -63,9 +75,9 @@ describe("Validation", () => {
         });
 
         it("Invalid and asyncValidation(Valid) should return an asyncValidation(Invalid)", async () => {
-            const res = invalid([
+            const res = invalidValidation([
                 { message: "invalid", value: "invalid value" },
-            ]).and(asyncValidation.valid());
+            ]).and(asyncValidation.validValidation());
             expect(res.fork).toBeDefined();
 
             expect(await res.getResult()).toEqual([
@@ -74,10 +86,10 @@ describe("Validation", () => {
         });
 
         it("Invalid and asyncValidation(InValid) should return an asyncValidation(Invalid)", async () => {
-            const res = invalid([
+            const res = invalidValidation([
                 { message: "invalid1", value: "invalid value" },
             ]).and(
-                asyncValidation.invalid([
+                asyncValidation.invalidValidation([
                     { message: "invalid2", value: "invalid value" },
                 ])
             );
@@ -90,7 +102,9 @@ describe("Validation", () => {
         });
 
         it("asyncValidation(Valid) and Valid should return asyncValidation(Valid)", async () => {
-            const res = asyncValidation.valid().and(valid());
+            const res = asyncValidation
+                .validValidation()
+                .and(validValidation());
             expect(res.fork).toBeDefined();
 
             expect(await res.getResult()).toBeUndefined();
@@ -98,8 +112,12 @@ describe("Validation", () => {
 
         it("asyncValidation(Valid) and Invalid should return asyncValidation(Invalid)", async () => {
             const res = asyncValidation
-                .valid()
-                .and(invalid([{ message: "invalid", value: "invalid value" }]));
+                .validValidation()
+                .and(
+                    invalidValidation([
+                        { message: "invalid", value: "invalid value" },
+                    ])
+                );
             expect(res.fork).toBeDefined();
 
             expect(await res.getResult()).toEqual([
@@ -108,7 +126,9 @@ describe("Validation", () => {
         });
 
         it("asyncValidation(Valid) and asyncValidation(Valid) should return an asyncValidation(Valid)", async () => {
-            const res = asyncValidation.valid().and(asyncValidation.valid());
+            const res = asyncValidation
+                .validValidation()
+                .and(asyncValidation.validValidation());
             expect(res.fork).toBeDefined();
 
             expect(await res.getResult()).toBeUndefined();
@@ -116,9 +136,9 @@ describe("Validation", () => {
 
         it("asyncValidation(Valid) and asyncValidation(InValid) should return an asyncValidation(Invalid)", async () => {
             const res = asyncValidation
-                .valid()
+                .validValidation()
                 .and(
-                    asyncValidation.invalid([
+                    asyncValidation.invalidValidation([
                         { message: "invalid", value: "invalid value" },
                     ])
                 );
@@ -131,8 +151,10 @@ describe("Validation", () => {
 
         it("asyncValidation(Invalid) and Valid should return asyncValidation(Invalid)", async () => {
             const res = asyncValidation
-                .invalid([{ message: "invalid", value: "invalid value" }])
-                .and(valid());
+                .invalidValidation([
+                    { message: "invalid", value: "invalid value" },
+                ])
+                .and(validValidation());
             expect(res.fork).toBeDefined();
 
             expect(await res.getResult()).toEqual([
@@ -142,9 +164,13 @@ describe("Validation", () => {
 
         it("asyncValidation(Invalid) and Invalid should return asyncValidation(Invalid)", async () => {
             const res = asyncValidation
-                .invalid([{ message: "invalid1", value: "invalid value" }])
+                .invalidValidation([
+                    { message: "invalid1", value: "invalid value" },
+                ])
                 .and(
-                    invalid([{ message: "invalid2", value: "invalid value" }])
+                    invalidValidation([
+                        { message: "invalid2", value: "invalid value" },
+                    ])
                 );
             expect(res.fork).toBeDefined();
 
@@ -156,8 +182,10 @@ describe("Validation", () => {
 
         it("asyncValidation(Invalid) and asyncValidation(Valid) should return an asyncValidation(Invalid)", async () => {
             const res = asyncValidation
-                .invalid([{ message: "invalid", value: "invalid value" }])
-                .and(asyncValidation.valid());
+                .invalidValidation([
+                    { message: "invalid", value: "invalid value" },
+                ])
+                .and(asyncValidation.validValidation());
             expect(res.fork).toBeDefined();
 
             expect(await res.getResult()).toEqual([
@@ -167,9 +195,11 @@ describe("Validation", () => {
 
         it("asyncValidation(Invalid) and asyncValidation(InValid) should return an asyncValidation(Invalid)", async () => {
             const res = asyncValidation
-                .invalid([{ message: "invalid1", value: "invalid value" }])
+                .invalidValidation([
+                    { message: "invalid1", value: "invalid value" },
+                ])
                 .and(
-                    asyncValidation.invalid([
+                    asyncValidation.invalidValidation([
                         { message: "invalid2", value: "invalid value" },
                     ])
                 );
@@ -184,29 +214,31 @@ describe("Validation", () => {
 
     describe("or", () => {
         it("Valid or Valid should keep the first Valid value", () => {
-            const res = valid().or(valid());
+            const res = validValidation().or(validValidation());
             expect(res.isValid).toBe(true);
             expect(res.getResult()).toBeUndefined();
         });
 
         it("Valid or InValid should keep the Valid value", () => {
-            const res = valid().or(
-                invalid([{ message: "invalid", value: "invalid value" }])
+            const res = validValidation().or(
+                invalidValidation([
+                    { message: "invalid", value: "invalid value" },
+                ])
             );
             expect(res.isValid).toBe(true);
             expect(res.getResult()).toBeUndefined();
         });
 
         it("Valid or asyncValidation(Valid) return asyncValidation(Valid)", async () => {
-            const res = valid().or(asyncValidation.valid());
+            const res = validValidation().or(asyncValidation.validValidation());
             expect(res.fork).toBeDefined();
 
             expect(await res.getResult()).toBeUndefined();
         });
 
         it("Valid or asyncValidation(InValid) should return asyncValidation(Valid)", async () => {
-            const res = valid().or(
-                asyncValidation.invalid([
+            const res = validValidation().or(
+                asyncValidation.invalidValidation([
                     { message: "invalid", value: "invalid value" },
                 ])
             );
@@ -216,17 +248,21 @@ describe("Validation", () => {
         });
 
         it("Invalid or Valid should keep the Valid value", () => {
-            const res = invalid([
+            const res = invalidValidation([
                 { message: "invalid", value: "invalid value" },
-            ]).or(valid());
+            ]).or(validValidation());
             expect(res.isValid).toBe(true);
             expect(res.getResult()).toBeUndefined();
         });
 
         it("Invalid or Invalid should concat the Invalid value", () => {
-            const res = invalid([
+            const res = invalidValidation([
                 { message: "invalid1", value: "invalid value" },
-            ]).or(invalid([{ message: "invalid2", value: "invalid value" }]));
+            ]).or(
+                invalidValidation([
+                    { message: "invalid2", value: "invalid value" },
+                ])
+            );
             expect(res.isValid).toBe(false);
             expect(res.getResult()).toEqual([
                 { message: "invalid1", value: "invalid value" },
@@ -235,19 +271,19 @@ describe("Validation", () => {
         });
 
         it("Invalid or asyncValidation(Valid) return asyncValidation(Valid)", async () => {
-            const res = invalid([
+            const res = invalidValidation([
                 { message: "invalid", value: "invalid value" },
-            ]).or(asyncValidation.valid());
+            ]).or(asyncValidation.validValidation());
             expect(res.fork).toBeDefined();
 
             expect(await res.getResult()).toBeUndefined();
         });
 
         it("Invalid or asyncValidation(InValid) should return asyncValidation(Valid)", async () => {
-            const res = invalid([
+            const res = invalidValidation([
                 { message: "invalid1", value: "invalid value" },
             ]).or(
-                asyncValidation.invalid([
+                asyncValidation.invalidValidation([
                     { message: "invalid2", value: "invalid value" },
                 ])
             );
@@ -260,7 +296,7 @@ describe("Validation", () => {
         });
 
         it("asyncValidation(Valid) or Valid should return asyncValidation(Valid)", async () => {
-            const res = asyncValidation.valid().or(valid());
+            const res = asyncValidation.validValidation().or(validValidation());
             expect(res.fork).toBeDefined();
 
             expect(await res.getResult()).toBeUndefined();
@@ -268,15 +304,21 @@ describe("Validation", () => {
 
         it("asyncValidation(Valid) or InValid should Return asyncValidation(Valid)", async () => {
             const res = asyncValidation
-                .valid()
-                .or(invalid([{ message: "invalid", value: "invalid value" }]));
+                .validValidation()
+                .or(
+                    invalidValidation([
+                        { message: "invalid", value: "invalid value" },
+                    ])
+                );
             expect(res.fork).toBeDefined();
 
             expect(await res.getResult()).toBeUndefined();
         });
 
         it("asyncValidation(Valid) or asyncValidation(Valid) return asyncValidation(Valid)", async () => {
-            const res = asyncValidation.valid().or(asyncValidation.valid());
+            const res = asyncValidation
+                .validValidation()
+                .or(asyncValidation.validValidation());
             expect(res.fork).toBeDefined();
 
             expect(await res.getResult()).toBeUndefined();
@@ -284,9 +326,9 @@ describe("Validation", () => {
 
         it("asyncValidation(Valid) or asyncValidation(InValid) should return asyncValidation(Valid)", async () => {
             const res = asyncValidation
-                .valid()
+                .validValidation()
                 .or(
-                    asyncValidation.invalid([
+                    asyncValidation.invalidValidation([
                         { message: "invalid", value: "invalid value" },
                     ])
                 );
@@ -297,8 +339,10 @@ describe("Validation", () => {
 
         it("asyncValidation(Invalid) or Valid should return asyncValidation(Value)", async () => {
             const res = asyncValidation
-                .invalid([{ message: "invalid", value: "invalid value" }])
-                .or(valid());
+                .invalidValidation([
+                    { message: "invalid", value: "invalid value" },
+                ])
+                .or(validValidation());
             expect(res.fork).toBeDefined();
 
             expect(await res.getResult()).toBeUndefined();
@@ -306,8 +350,14 @@ describe("Validation", () => {
 
         it("asyncValidation(Invalid) or Invalid should return asyncValidation(Invalid)", async () => {
             const res = asyncValidation
-                .invalid([{ message: "invalid1", value: "invalid value" }])
-                .or(invalid([{ message: "invalid2", value: "invalid value" }]));
+                .invalidValidation([
+                    { message: "invalid1", value: "invalid value" },
+                ])
+                .or(
+                    invalidValidation([
+                        { message: "invalid2", value: "invalid value" },
+                    ])
+                );
             expect(res.fork).toBeDefined();
 
             expect(await res.getResult()).toEqual([
@@ -318,8 +368,10 @@ describe("Validation", () => {
 
         it("asyncValidation(Invalid) or asyncValidation(Valid) return asyncValidation(Valid)", async () => {
             const res = asyncValidation
-                .invalid([{ message: "invalid", value: "invalid value" }])
-                .or(asyncValidation.valid());
+                .invalidValidation([
+                    { message: "invalid", value: "invalid value" },
+                ])
+                .or(asyncValidation.validValidation());
             expect(res.fork).toBeDefined();
 
             expect(await res.getResult()).toBeUndefined();
@@ -327,9 +379,11 @@ describe("Validation", () => {
 
         it("asyncValidation(Invalid) or asyncValidation(InValid) should return asyncValidation(Valid)", async () => {
             const res = asyncValidation
-                .invalid([{ message: "invalid1", value: "invalid value" }])
+                .invalidValidation([
+                    { message: "invalid1", value: "invalid value" },
+                ])
                 .or(
-                    asyncValidation.invalid([
+                    asyncValidation.invalidValidation([
                         { message: "invalid2", value: "invalid value" },
                     ])
                 );
