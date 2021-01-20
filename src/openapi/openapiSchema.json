@@ -850,6 +850,15 @@
                         "description": "User Status"
                     }
                 },
+                "required": [
+                    "id",
+                    "username",
+                    "firstName",
+                    "lastName",
+                    "email",
+                    "password",
+                    "userStatus"
+                ],
                 "xml": {
                     "name": "User"
                 }
@@ -865,6 +874,7 @@
                         "type": "string"
                     }
                 },
+                "required": ["id", "name"],
                 "xml": {
                     "name": "Tag"
                 }

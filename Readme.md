@@ -496,7 +496,7 @@ const validateUser = shape({
 validateUser.check({ email: 'john@gmail.com', password: 'shouldnotdisplaythis' }) // undefined
 validateUser.check({ email: 'john@gmail.com', password: 'shouldnotdisplaythis', foo: 'bar', bar: 'baz' })
 // [{
-//     predicate: "Value accept only the following keys: email, password",
+//     predicate: "value accept only the following keys: email, password",
 //     valid: false,
 //     value: {
 //         email: 'john@gmail.com'

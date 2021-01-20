@@ -608,6 +608,14 @@ components:
                     type: integer
                     format: int32
                     description: User Status
+            required:
+                - id
+                - username
+                - firstName
+                - lastName
+                - email
+                - password
+                - userStatus
             xml:
                 name: User
         Tag:
@@ -618,6 +626,9 @@ components:
                     format: int64
                 name:
                     type: string
+            required:
+                - id
+                - name
             xml:
                 name: Tag
         Pet:

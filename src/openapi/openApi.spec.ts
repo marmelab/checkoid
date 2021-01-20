@@ -41,63 +41,122 @@ describe("openapi", () => {
                     complete: true,
                 })
             ).toBe(undefined);
-            expect(validators.Order.check(null)).toEqual([
+            expect(
+                validators.Order.check({
+                    id: "unique",
+                    petId: "this one",
+                    quantity: "a lot",
+                    shipDate: "As soon as possible",
+                    status: "hurry",
+                    complete: "now",
+                })
+            ).toEqual([
                 {
+                    inverted: false,
                     key: ["id"],
-                    message: "value must be a number",
-                    value: null,
+                    predicate: "value is a number",
+                    valid: false,
+                    value: "unique",
                 },
                 {
+                    inverted: false,
                     key: ["id"],
-                    message: "value must be an integer",
-                    value: null,
+                    predicate: "value is an integer",
+                    valid: false,
+                    value: "unique",
                 },
                 {
+                    inverted: false,
+                    key: ["id"],
+                    predicate: "value is null",
+                    valid: false,
+                    value: "unique",
+                },
+                {
+                    inverted: false,
                     key: ["petId"],
-                    message: "value must be a number",
-                    value: null,
+                    predicate: "value is a number",
+                    valid: false,
+                    value: "this one",
                 },
                 {
+                    inverted: false,
                     key: ["petId"],
-                    message: "value must be an integer",
-                    value: null,
+                    predicate: "value is an integer",
+                    valid: false,
+                    value: "this one",
                 },
                 {
+                    inverted: false,
+                    key: ["petId"],
+                    predicate: "value is null",
+                    valid: false,
+                    value: "this one",
+                },
+                {
+                    inverted: false,
                     key: ["quantity"],
-                    message: "value must be a number",
-                    value: null,
+                    predicate: "value is a number",
+                    valid: false,
+                    value: "a lot",
                 },
                 {
+                    inverted: false,
                     key: ["quantity"],
-                    message: "value must be an integer",
-                    value: null,
+                    predicate: "value is an integer",
+                    valid: false,
+                    value: "a lot",
                 },
                 {
+                    inverted: false,
+                    key: ["quantity"],
+                    predicate: "value is null",
+                    valid: false,
+                    value: "a lot",
+                },
+                {
+                    inverted: false,
                     key: ["shipDate"],
-                    message: "value must be a string",
-                    value: null,
+                    predicate:
+                        "value is a valid date-time string (yyyy-MM-ddThh:mm:ssZ)",
+                    valid: false,
+                    value: "As soon as possible",
                 },
                 {
+                    inverted: false,
                     key: ["shipDate"],
-                    message:
-                        "value must be a valid date-time string (yyyy-MM-ddThh:mm:ssZ)",
-                    value: null,
+                    predicate: "value is null",
+                    valid: false,
+                    value: "As soon as possible",
                 },
                 {
+                    inverted: false,
                     key: ["status"],
-                    message: "value must be a string",
-                    value: null,
+                    predicate:
+                        'value is one of "placed", "approved", "delivered"',
+                    valid: false,
+                    value: "hurry",
                 },
                 {
+                    inverted: false,
                     key: ["status"],
-                    message:
-                        'value must be one of "placed", "approved", "delivered"',
-                    value: null,
+                    predicate: "value is null",
+                    valid: false,
+                    value: "hurry",
                 },
                 {
+                    inverted: false,
                     key: ["complete"],
-                    message: "value must be a boolean",
-                    value: null,
+                    predicate: "value is a boolean",
+                    valid: false,
+                    value: "now",
+                },
+                {
+                    inverted: false,
+                    key: ["complete"],
+                    predicate: "value is null",
+                    valid: false,
+                    value: "now",
                 },
             ]);
         });
@@ -112,23 +171,52 @@ describe("openapi", () => {
                     name: "cat",
                 })
             ).toBe(undefined);
+            expect(validators.Category.check({ id: "id", name: 42 })).toEqual([
+                {
+                    inverted: false,
+                    key: ["id"],
+                    predicate: "value is a number",
+                    valid: false,
+                    value: "id",
+                },
+                {
+                    inverted: false,
+                    key: ["id"],
+                    predicate: "value is an integer",
+                    valid: false,
+                    value: "id",
+                },
+                {
+                    inverted: false,
+                    key: ["id"],
+                    predicate: "value is null",
+                    valid: false,
+                    value: "id",
+                },
+                {
+                    inverted: false,
+                    key: ["name"],
+                    predicate: "value is a string",
+                    valid: false,
+                    value: 42,
+                },
+                {
+                    inverted: false,
+                    key: ["name"],
+                    predicate: "value is null",
+                    valid: false,
+                    value: 42,
+                },
+            ]);
             expect(validators.Category.check(null)).toEqual([
                 {
-                    key: ["id"],
-                    message: "value must be a number",
-                    value: null,
-                },
-                {
-                    key: ["id"],
-                    message: "value must be an integer",
-                    value: null,
-                },
-                {
-                    key: ["name"],
-                    message: "value must be a string",
+                    predicate: "value is an object",
+                    valid: false,
+                    inverted: false,
                     value: null,
                 },
             ]);
+            expect(validators.Category.check({})).toEqual(undefined);
         });
 
         it("should create an User validator from document", () => {
@@ -149,53 +237,72 @@ describe("openapi", () => {
             ).toBe(undefined);
             expect(validators.User.check(null)).toEqual([
                 {
-                    key: ["id"],
-                    message: "value must be a number",
+                    predicate: "value is an object",
+                    valid: false,
+                    inverted: false,
                     value: null,
                 },
                 {
                     key: ["id"],
-                    message: "value must be an integer",
+                    predicate: "value is a number",
+                    valid: false,
+                    inverted: false,
+                    value: null,
+                },
+                {
+                    key: ["id"],
+                    predicate: "value is an integer",
+                    valid: false,
+                    inverted: false,
                     value: null,
                 },
                 {
                     key: ["username"],
-                    message: "value must be a string",
+                    predicate: "value is a string",
+                    valid: false,
+                    inverted: false,
                     value: null,
                 },
                 {
                     key: ["firstName"],
-                    message: "value must be a string",
+                    predicate: "value is a string",
+                    valid: false,
+                    inverted: false,
                     value: null,
                 },
                 {
                     key: ["lastName"],
-                    message: "value must be a string",
+                    predicate: "value is a string",
+                    valid: false,
+                    inverted: false,
                     value: null,
                 },
                 {
                     key: ["email"],
-                    message: "value must be a string",
+                    predicate: "value is a string",
+                    valid: false,
+                    inverted: false,
                     value: null,
                 },
                 {
                     key: ["password"],
-                    message: "value must be a string",
-                    value: null,
-                },
-                {
-                    key: ["phone"],
-                    message: "value must be a string",
-                    value: null,
-                },
-                {
-                    key: ["userStatus"],
-                    message: "value must be a number",
+                    predicate: "value is a string",
+                    valid: false,
+                    inverted: false,
                     value: null,
                 },
                 {
                     key: ["userStatus"],
-                    message: "value must be an integer",
+                    predicate: "value is a number",
+                    valid: false,
+                    inverted: false,
+                    value: null,
+                },
+                {
+                    key: ["userStatus"],
+                    predicate: "value is an integer",
+                    valid: false,
+                    inverted: false,
                     value: null,
                 },
             ]);
@@ -213,18 +320,30 @@ describe("openapi", () => {
             ).toBe(undefined);
             expect(validators.Tag.check(null)).toEqual([
                 {
-                    key: ["id"],
-                    message: "value must be a number",
+                    inverted: false,
+                    predicate: "value is an object",
+                    valid: false,
                     value: null,
                 },
                 {
                     key: ["id"],
-                    message: "value must be an integer",
+                    predicate: "value is a number",
+                    valid: false,
+                    inverted: false,
+                    value: null,
+                },
+                {
+                    key: ["id"],
+                    predicate: "value is an integer",
+                    valid: false,
+                    inverted: false,
                     value: null,
                 },
                 {
                     key: ["name"],
-                    message: "value must be a string",
+                    predicate: "value is a string",
+                    valid: false,
+                    inverted: false,
                     value: null,
                 },
             ]);
@@ -246,54 +365,23 @@ describe("openapi", () => {
             ).toBe(undefined);
             expect(validators.Pet.check(null)).toEqual([
                 {
-                    key: ["id"],
-                    message: "value must be a number",
+                    inverted: false,
+                    predicate: "value is an object",
+                    valid: false,
                     value: null,
                 },
                 {
-                    key: ["id"],
-                    message: "value must be an integer",
-                    value: null,
-                },
-                {
-                    key: ["category", "id"],
-                    message: "value must be a number",
-                    value: null,
-                },
-                {
-                    key: ["category", "id"],
-                    message: "value must be an integer",
-                    value: null,
-                },
-                {
-                    key: ["category", "name"],
-                    message: "value must be a string",
-                    value: null,
-                },
-                {
+                    inverted: false,
                     key: ["name"],
-                    message: "value must be a string",
+                    predicate: "value is a string",
+                    valid: false,
                     value: null,
                 },
                 {
+                    inverted: false,
                     key: ["photoUrls"],
-                    message: "value must be an array",
-                    value: null,
-                },
-                {
-                    key: ["tags"],
-                    message: "value must be an array",
-                    value: null,
-                },
-                {
-                    key: ["status"],
-                    message: "value must be a string",
-                    value: null,
-                },
-                {
-                    key: ["status"],
-                    message:
-                        'value must be one of "available", "pending", "sold"',
+                    predicate: "value is an array",
+                    valid: false,
                     value: null,
                 },
             ]);
@@ -310,26 +398,15 @@ describe("openapi", () => {
                     message: "Something went wrong",
                 })
             ).toBe(undefined);
-            expect(validators.ApiResponse.check(null)).toEqual([
+            expect(validators.ApiResponse.check({ foo: "bar" })).toEqual([
                 {
-                    key: ["code"],
-                    message: "value must be a number",
-                    value: null,
-                },
-                {
-                    key: ["code"],
-                    message: "value must be an integer",
-                    value: null,
-                },
-                {
-                    key: ["type"],
-                    message: "value must be a string",
-                    value: null,
-                },
-                {
-                    key: ["message"],
-                    message: "value must be a string",
-                    value: null,
+                    inverted: false,
+                    predicate:
+                        "value accept only the following keys: code,type,message",
+                    valid: false,
+                    value: {
+                        foo: "bar",
+                    },
                 },
             ]);
         });
@@ -346,7 +423,12 @@ describe("openapi", () => {
 
                 expect(validator.check("A simple string")).toBe(undefined);
                 expect(validator.check(45)).toEqual([
-                    { message: "value must be a string", value: 45 },
+                    {
+                        predicate: "value is a string",
+                        valid: false,
+                        inverted: false,
+                        value: 45,
+                    },
                 ]);
             });
 
@@ -361,16 +443,26 @@ describe("openapi", () => {
                 expect(validator.check("2017-07-21T17:32:28Z")).toBe(undefined);
                 expect(validator.check("A simple string")).toEqual([
                     {
-                        message:
-                            "value must be a valid date-time string (yyyy-MM-ddThh:mm:ssZ)",
+                        predicate:
+                            "value is a valid date-time string (yyyy-MM-ddThh:mm:ssZ)",
+                        valid: false,
+                        inverted: false,
                         value: "A simple string",
                     },
                 ]);
                 expect(validator.check(45)).toEqual([
-                    { message: "value must be a string", value: 45 },
                     {
-                        message:
-                            "value must be a valid date-time string (yyyy-MM-ddThh:mm:ssZ)",
+                        predicate: "value is a string",
+                        valid: false,
+                        inverted: false,
+                        value: 45,
+                    },
+                    {
+                        predicate:
+                            "value is a valid date-time string (yyyy-MM-ddThh:mm:ssZ)",
+
+                        valid: false,
+                        inverted: false,
                         value: 45,
                     },
                 ]);
@@ -387,16 +479,23 @@ describe("openapi", () => {
                 expect(validator.check("2017-07-21")).toBe(undefined);
                 expect(validator.check("A simple string")).toEqual([
                     {
-                        message:
-                            "value must be a valid date string (yyyy-MM-dd)",
+                        predicate: "value is a valid date string (yyyy-MM-dd)",
+                        valid: false,
+                        inverted: false,
                         value: "A simple string",
                     },
                 ]);
                 expect(validator.check(45)).toEqual([
-                    { message: "value must be a string", value: 45 },
                     {
-                        message:
-                            "value must be a valid date string (yyyy-MM-dd)",
+                        predicate: "value is a string",
+                        valid: false,
+                        inverted: false,
+                        value: 45,
+                    },
+                    {
+                        predicate: "value is a valid date string (yyyy-MM-dd)",
+                        valid: false,
+                        inverted: false,
                         value: 45,
                     },
                 ]);
@@ -413,14 +512,23 @@ describe("openapi", () => {
                 expect(validator.check("011110")).toBe(undefined);
                 expect(validator.check("A simple string")).toEqual([
                     {
-                        message: "value must be a valid binary string",
+                        predicate: "value is a valid binary string",
+                        valid: false,
+                        inverted: false,
                         value: "A simple string",
                     },
                 ]);
                 expect(validator.check(45)).toEqual([
-                    { message: "value must be a string", value: 45 },
                     {
-                        message: "value must be a valid binary string",
+                        predicate: "value is a string",
+                        valid: false,
+                        inverted: false,
+                        value: 45,
+                    },
+                    {
+                        predicate: "value is a valid binary string",
+                        valid: false,
+                        inverted: false,
                         value: 45,
                     },
                 ]);
@@ -437,14 +545,23 @@ describe("openapi", () => {
                 expect(validator.check("U3dhZ2dlciByb2Nrcw==")).toBe(undefined);
                 expect(validator.check("A simple string")).toEqual([
                     {
-                        message: "value must be a valid base64 string",
+                        predicate: "value is a valid base64 string",
+                        valid: false,
+                        inverted: false,
                         value: "A simple string",
                     },
                 ]);
                 expect(validator.check(45)).toEqual([
-                    { message: "value must be a string", value: 45 },
                     {
-                        message: "value must be a valid base64 string",
+                        predicate: "value is a string",
+                        valid: false,
+                        inverted: false,
+                        value: 45,
+                    },
+                    {
+                        predicate: "value is a valid base64 string",
+                        valid: false,
+                        inverted: false,
                         value: 45,
                     },
                 ]);
@@ -463,14 +580,23 @@ describe("openapi", () => {
                 expect(validator.check("three")).toBe(undefined);
                 expect(validator.check("four")).toEqual([
                     {
-                        message: 'value must be one of "one", "two", "three"',
+                        predicate: 'value is one of "one", "two", "three"',
+                        valid: false,
+                        inverted: false,
                         value: "four",
                     },
                 ]);
                 expect(validator.check(45)).toEqual([
-                    { message: "value must be a string", value: 45 },
                     {
-                        message: 'value must be one of "one", "two", "three"',
+                        predicate: "value is a string",
+                        valid: false,
+                        inverted: false,
+                        value: 45,
+                    },
+                    {
+                        predicate: 'value is one of "one", "two", "three"',
+                        valid: false,
+                        inverted: false,
                         value: 45,
                     },
                 ]);
@@ -487,14 +613,23 @@ describe("openapi", () => {
                 expect(validator.check("test@gmail.com")).toBe(undefined);
                 expect(validator.check("A simple string")).toEqual([
                     {
-                        message: "value must match pattern /@.*?\\./",
+                        predicate: "value match pattern /@.*?\\./",
+                        valid: false,
+                        inverted: false,
                         value: "A simple string",
                     },
                 ]);
                 expect(validator.check(45)).toEqual([
-                    { message: "value must be a string", value: 45 },
                     {
-                        message: "value must match pattern /@.*?\\./",
+                        predicate: "value is a string",
+                        valid: false,
+                        inverted: false,
+                        value: 45,
+                    },
+                    {
+                        predicate: "value match pattern /@.*?\\./",
+                        valid: false,
+                        inverted: false,
                         value: 45,
                     },
                 ]);
@@ -513,14 +648,23 @@ describe("openapi", () => {
                 );
                 expect(validator.check("A too small string")).toEqual([
                     {
-                        message: "value must be at least 20 characters long",
+                        predicate: "value is at least 20 characters long",
+                        valid: false,
+                        inverted: false,
                         value: "A too small string",
                     },
                 ]);
                 expect(validator.check(45)).toEqual([
-                    { message: "value must be a string", value: 45 },
                     {
-                        message: "value must be at least 20 characters long",
+                        predicate: "value is a string",
+                        valid: false,
+                        inverted: false,
+                        value: 45,
+                    },
+                    {
+                        predicate: "value is at least 20 characters long",
+                        valid: false,
+                        inverted: false,
                         value: 45,
                     },
                 ]);
@@ -543,15 +687,24 @@ describe("openapi", () => {
                     )
                 ).toEqual([
                     {
-                        message: "value must be at most 50 characters long",
+                        predicate: "value is at most 50 characters long",
+                        valid: false,
+                        inverted: false,
                         value:
                             "A string that is way too long. Seriously, what did you expect ?",
                     },
                 ]);
                 expect(validator.check(45)).toEqual([
-                    { message: "value must be a string", value: 45 },
                     {
-                        message: "value must be at most 50 characters long",
+                        predicate: "value is a string",
+                        valid: false,
+                        inverted: false,
+                        value: 45,
+                    },
+                    {
+                        predicate: "value is at most 50 characters long",
+                        valid: false,
+                        inverted: false,
                         value: 45,
                     },
                 ]);
@@ -571,23 +724,40 @@ describe("openapi", () => {
 
                 expect(validator.check("0001")).toBe(undefined);
                 expect(validator.check(45)).toEqual([
-                    { message: "value must be a string", value: 45 },
                     {
-                        message: "value must be a valid binary string",
+                        predicate: "value is a string",
+                        valid: false,
+                        inverted: false,
                         value: 45,
                     },
                     {
-                        message:
-                            'value must be one of "0001", "00010", "00011"',
-                        value: 45,
-                    },
-                    { message: "value must match pattern /^000/", value: 45 },
-                    {
-                        message: "value must be at least 3 characters long",
+                        predicate: "value is a valid binary string",
+                        valid: false,
+                        inverted: false,
                         value: 45,
                     },
                     {
-                        message: "value must be at most 5 characters long",
+                        predicate: 'value is one of "0001", "00010", "00011"',
+                        valid: false,
+                        inverted: false,
+                        value: 45,
+                    },
+                    {
+                        predicate: "value match pattern /^000/",
+                        valid: false,
+                        inverted: false,
+                        value: 45,
+                    },
+                    {
+                        predicate: "value is at least 3 characters long",
+                        valid: false,
+                        inverted: false,
+                        value: 45,
+                    },
+                    {
+                        predicate: "value is at most 5 characters long",
+                        valid: false,
+                        inverted: false,
                         value: 45,
                     },
                 ]);
@@ -602,10 +772,20 @@ describe("openapi", () => {
 
                 expect(validator.check(42.5)).toBe(undefined);
                 expect(validator.check("A string")).toEqual([
-                    { message: "value must be a number", value: "A string" },
+                    {
+                        predicate: "value is a number",
+                        valid: false,
+                        inverted: false,
+                        value: "A string",
+                    },
                 ]);
                 expect(validator.check("42")).toEqual([
-                    { message: "value must be a number", value: "42" },
+                    {
+                        predicate: "value is a number",
+                        valid: false,
+                        inverted: false,
+                        value: "42",
+                    },
                 ]);
             });
             it("should handle number type schema with minimum", () => {
@@ -618,7 +798,12 @@ describe("openapi", () => {
                 expect(validator.check(42.5)).toBe(undefined);
                 expect(validator.check(10)).toBe(undefined);
                 expect(validator.check(7.5)).toEqual([
-                    { message: "value must be at least 10", value: 7.5 },
+                    {
+                        predicate: "value is at least 10",
+                        valid: false,
+                        inverted: false,
+                        value: 7.5,
+                    },
                 ]);
             });
             it("should handle number type schema with minimum and exclusiveMinimum", () => {
@@ -631,10 +816,20 @@ describe("openapi", () => {
 
                 expect(validator.check(42.5)).toBe(undefined);
                 expect(validator.check(10)).toEqual([
-                    { message: "value must be greater than 10", value: 10 },
+                    {
+                        predicate: "value is greater than 10",
+                        valid: false,
+                        inverted: false,
+                        value: 10,
+                    },
                 ]);
                 expect(validator.check(7.5)).toEqual([
-                    { message: "value must be greater than 10", value: 7.5 },
+                    {
+                        predicate: "value is greater than 10",
+                        valid: false,
+                        inverted: false,
+                        value: 7.5,
+                    },
                 ]);
             });
             it("should handle number type schema with maximum", () => {
@@ -647,7 +842,12 @@ describe("openapi", () => {
                 expect(validator.check(42.5)).toBe(undefined);
                 expect(validator.check(100)).toBe(undefined);
                 expect(validator.check(101.5)).toEqual([
-                    { message: "value must be at most 100", value: 101.5 },
+                    {
+                        predicate: "value is at most 100",
+                        valid: false,
+                        inverted: false,
+                        value: 101.5,
+                    },
                 ]);
             });
             it("should handle number type schema with maximum and exclusiveMaximum", () => {
@@ -660,10 +860,20 @@ describe("openapi", () => {
 
                 expect(validator.check(42.5)).toBe(undefined);
                 expect(validator.check(100)).toEqual([
-                    { message: "value must be less than 100", value: 100 },
+                    {
+                        predicate: "value is less than 100",
+                        valid: false,
+                        inverted: false,
+                        value: 100,
+                    },
                 ]);
                 expect(validator.check(101.5)).toEqual([
-                    { message: "value must be less than 100", value: 101.5 },
+                    {
+                        predicate: "value is less than 100",
+                        valid: false,
+                        inverted: false,
+                        value: 101.5,
+                    },
                 ]);
             });
         });
@@ -676,15 +886,40 @@ describe("openapi", () => {
 
                 expect(validator.check(42)).toBe(undefined);
                 expect(validator.check(42.5)).toEqual([
-                    { message: "value must be an integer", value: 42.5 },
+                    {
+                        predicate: "value is an integer",
+                        valid: false,
+                        inverted: false,
+                        value: 42.5,
+                    },
                 ]);
                 expect(validator.check("A string")).toEqual([
-                    { message: "value must be a number", value: "A string" },
-                    { message: "value must be an integer", value: "A string" },
+                    {
+                        predicate: "value is a number",
+                        valid: false,
+                        inverted: false,
+                        value: "A string",
+                    },
+                    {
+                        predicate: "value is an integer",
+                        valid: false,
+                        inverted: false,
+                        value: "A string",
+                    },
                 ]);
                 expect(validator.check("42")).toEqual([
-                    { message: "value must be a number", value: "42" },
-                    { message: "value must be an integer", value: "42" },
+                    {
+                        predicate: "value is a number",
+                        valid: false,
+                        inverted: false,
+                        value: "42",
+                    },
+                    {
+                        predicate: "value is an integer",
+                        valid: false,
+                        inverted: false,
+                        value: "42",
+                    },
                 ]);
             });
             it("should handle number type schema with minimum", () => {
@@ -697,8 +932,18 @@ describe("openapi", () => {
                 expect(validator.check(42)).toBe(undefined);
                 expect(validator.check(10)).toBe(undefined);
                 expect(validator.check(7.5)).toEqual([
-                    { message: "value must be an integer", value: 7.5 },
-                    { message: "value must be at least 10", value: 7.5 },
+                    {
+                        predicate: "value is an integer",
+                        valid: false,
+                        inverted: false,
+                        value: 7.5,
+                    },
+                    {
+                        predicate: "value is at least 10",
+                        valid: false,
+                        inverted: false,
+                        value: 7.5,
+                    },
                 ]);
             });
             it("should handle number type schema with minimum and exclusiveMinimum", () => {
@@ -711,11 +956,26 @@ describe("openapi", () => {
 
                 expect(validator.check(42)).toBe(undefined);
                 expect(validator.check(10)).toEqual([
-                    { message: "value must be greater than 10", value: 10 },
+                    {
+                        predicate: "value is greater than 10",
+                        valid: false,
+                        inverted: false,
+                        value: 10,
+                    },
                 ]);
                 expect(validator.check(7.5)).toEqual([
-                    { message: "value must be an integer", value: 7.5 },
-                    { message: "value must be greater than 10", value: 7.5 },
+                    {
+                        predicate: "value is an integer",
+                        valid: false,
+                        inverted: false,
+                        value: 7.5,
+                    },
+                    {
+                        predicate: "value is greater than 10",
+                        valid: false,
+                        inverted: false,
+                        value: 7.5,
+                    },
                 ]);
             });
             it("should handle number type schema with maximum", () => {
@@ -728,8 +988,18 @@ describe("openapi", () => {
                 expect(validator.check(42)).toBe(undefined);
                 expect(validator.check(100)).toBe(undefined);
                 expect(validator.check(101.5)).toEqual([
-                    { message: "value must be an integer", value: 101.5 },
-                    { message: "value must be at most 100", value: 101.5 },
+                    {
+                        predicate: "value is an integer",
+                        valid: false,
+                        inverted: false,
+                        value: 101.5,
+                    },
+                    {
+                        predicate: "value is at most 100",
+                        valid: false,
+                        inverted: false,
+                        value: 101.5,
+                    },
                 ]);
             });
             it("should handle number type schema with maximum and exclusiveMaximum", () => {
@@ -742,11 +1012,26 @@ describe("openapi", () => {
 
                 expect(validator.check(42)).toBe(undefined);
                 expect(validator.check(100)).toEqual([
-                    { message: "value must be less than 100", value: 100 },
+                    {
+                        predicate: "value is less than 100",
+                        valid: false,
+                        inverted: false,
+                        value: 100,
+                    },
                 ]);
                 expect(validator.check(101.5)).toEqual([
-                    { message: "value must be an integer", value: 101.5 },
-                    { message: "value must be less than 100", value: 101.5 },
+                    {
+                        predicate: "value is an integer",
+                        valid: false,
+                        inverted: false,
+                        value: 101.5,
+                    },
+                    {
+                        predicate: "value is less than 100",
+                        valid: false,
+                        inverted: false,
+                        value: 101.5,
+                    },
                 ]);
             });
         });
@@ -761,10 +1046,20 @@ describe("openapi", () => {
                 expect(validator.check(true)).toBe(undefined);
                 expect(validator.check(false)).toBe(undefined);
                 expect(validator.check("false")).toEqual([
-                    { message: "value must be a boolean", value: "false" },
+                    {
+                        predicate: "value is a boolean",
+                        valid: false,
+                        inverted: false,
+                        value: "false",
+                    },
                 ]);
                 expect(validator.check(0)).toEqual([
-                    { message: "value must be a boolean", value: 0 },
+                    {
+                        predicate: "value is a boolean",
+                        valid: false,
+                        inverted: false,
+                        value: 0,
+                    },
                 ]);
             });
         });
@@ -783,13 +1078,19 @@ describe("openapi", () => {
                 expect(validator.check([])).toBe(undefined);
                 expect(validator.check(["foo", "bar"])).toBe(undefined);
                 expect(validator.check(["foo", "bar", 7])).toEqual([
-                    { key: [2], message: "value must be a string", value: 7 },
+                    {
+                        key: [2],
+                        predicate: "value is a string",
+                        valid: false,
+                        inverted: false,
+                        value: 7,
+                    },
                 ]);
             });
         });
 
         describe("object type", () => {
-            it("should handle type array schema", () => {
+            it("should handle type object schema", () => {
                 const schema: Schema = {
                     type: "object",
                     properties: {
@@ -837,56 +1138,98 @@ describe("openapi", () => {
                 ).toEqual([
                     {
                         key: ["password"],
-                        message: "value must be at least 7 characters long",
+                        predicate: "value is at least 7 characters long",
+                        valid: false,
+                        inverted: false,
+                        value: "secret",
+                    },
+                    {
+                        key: ["password"],
+                        predicate: "value is null",
+                        valid: false,
+                        inverted: false,
                         value: "secret",
                     },
                 ]);
                 expect(validator.check("john")).toEqual([
-                    { message: "value must be an object", value: "john" },
                     {
-                        key: ["id"],
-                        message: "value must be a number",
-                        value: undefined,
+                        predicate: "value is an object",
+                        valid: false,
+                        inverted: false,
+                        value: "john",
                     },
-                    {
-                        key: ["id"],
-                        message: "value must be an integer",
-                        value: undefined,
+                ]);
+            });
+
+            it("should handle type object schema with required props", () => {
+                const schema: Schema = {
+                    type: "object",
+                    required: [],
+                    properties: {
+                        id: {
+                            type: "integer",
+                        },
+                        username: {
+                            type: "string",
+                        },
+                        email: {
+                            type: "string",
+                            pattern: "@.*?\\.",
+                        },
+                        password: {
+                            type: "string",
+                            minLength: 7,
+                        },
+                        sex: {
+                            type: "string",
+                            enum: ["M", "F", "N"],
+                        },
                     },
-                    {
-                        key: ["username"],
-                        message: "value must be a string",
-                        value: undefined,
-                    },
-                    {
-                        key: ["email"],
-                        message: "value must be a string",
-                        value: undefined,
-                    },
-                    {
-                        key: ["email"],
-                        message: "value must match pattern /@.*?\\./",
-                        value: undefined,
-                    },
+                };
+
+                const validator = schemaToValidator(schema, document);
+
+                expect(
+                    validator.check({
+                        id: 42,
+                        username: "john",
+                        email: "john@gmail.com",
+                        password: "47874fd5sq4f5z7fr",
+                        sex: "M",
+                    })
+                ).toBe(undefined);
+
+                expect(
+                    validator.check({
+                        id: 42,
+                        username: "john",
+                        email: "john@gmail.com",
+                        password: "secret",
+                        sex: "M",
+                    })
+                ).toEqual([
                     {
                         key: ["password"],
-                        message: "value must be a string",
-                        value: undefined,
+                        predicate: "value is at least 7 characters long",
+                        valid: false,
+                        inverted: false,
+                        value: "secret",
                     },
                     {
+                        inverted: false,
+                        predicate: "value is null",
+                        valid: false,
                         key: ["password"],
-                        message: "value must be at least 7 characters long",
-                        value: undefined,
+                        value: "secret",
                     },
+                ]);
+
+                expect(validator.check("john")).toEqual([
                     {
-                        key: ["sex"],
-                        message: "value must be a string",
-                        value: undefined,
-                    },
-                    {
-                        key: ["sex"],
-                        message: 'value must be one of "M", "F", "N"',
-                        value: undefined,
+                        predicate: "value is an object",
+                        valid: false,
+                        value: "john",
+                        inverted: false,
                     },
                 ]);
             });
@@ -903,6 +1246,7 @@ describe("openapi", () => {
                                     type: "string",
                                 },
                             },
+                            required: ["id"],
                         },
                         {
                             type: "object",
@@ -911,6 +1255,7 @@ describe("openapi", () => {
                                     type: "string",
                                 },
                             },
+                            required: ["name"],
                         },
                     ],
                 };
@@ -919,13 +1264,29 @@ describe("openapi", () => {
 
                 expect(validator.check(null)).toEqual([
                     {
+                        inverted: false,
+                        predicate: "value is an object",
+                        valid: false,
+                        value: null,
+                    },
+                    {
                         key: ["id"],
-                        message: "value must be a string",
+                        predicate: "value is a string",
+                        valid: false,
+                        inverted: false,
+                        value: null,
+                    },
+                    {
+                        inverted: false,
+                        predicate: "value is an object",
+                        valid: false,
                         value: null,
                     },
                     {
                         key: ["name"],
-                        message: "value must be a string",
+                        predicate: "value is a string",
+                        valid: false,
+                        inverted: false,
                         value: null,
                     },
                 ]);
@@ -943,6 +1304,7 @@ describe("openapi", () => {
                                     type: "string",
                                 },
                             },
+                            required: ["id"],
                         },
                         {
                             type: "object",
@@ -951,6 +1313,7 @@ describe("openapi", () => {
                                     type: "string",
                                 },
                             },
+                            required: ["name"],
                         },
                     ],
                 };
@@ -959,26 +1322,91 @@ describe("openapi", () => {
 
                 expect(validator.check(null)).toEqual([
                     {
-                        message: "value must pass at least one validation",
+                        inverted: false,
+                        predicate: "value pass at least one validation",
+                        valid: false,
                         value: null,
                     },
                     {
+                        inverted: false,
+                        predicate: "value is an object",
+                        valid: false,
+                        value: null,
+                    },
+                    {
+                        inverted: false,
                         key: ["id"],
-                        message: "value must be a string",
+                        predicate: "value is a string",
+                        valid: false,
                         value: null,
                     },
                     {
+                        inverted: false,
+                        predicate: "value is an object",
+                        valid: false,
+                        value: null,
+                    },
+                    {
+                        inverted: false,
                         key: ["name"],
-                        message: "value must be a string",
+                        predicate: "value is a string",
+                        valid: false,
                         value: null,
                     },
                 ]);
 
                 expect(validator.check({ id: "id" })).toBe(undefined);
+                expect(validator.check({ id: 42 })).toEqual([
+                    {
+                        inverted: false,
+                        predicate: "value pass at least one validation",
+                        valid: false,
+                        value: { id: 42 },
+                    },
+                    {
+                        inverted: false,
+                        key: ["id"],
+                        predicate: "value is a string",
+                        valid: false,
+                        value: 42,
+                    },
+                    {
+                        inverted: false,
+                        predicate: "value accept only the following keys: name",
+                        valid: false,
+                        value: {
+                            id: 42,
+                        },
+                    },
+                    {
+                        inverted: false,
+                        key: ["name"],
+                        predicate: "value is a string",
+                        valid: false,
+                        value: undefined,
+                    },
+                ]);
                 expect(validator.check({ name: "name" })).toBe(undefined);
-                expect(validator.check({ id: "id", name: "name" })).toBe(
-                    undefined
-                );
+                expect(validator.check({ id: "id", name: "name" })).toEqual([
+                    {
+                        inverted: false,
+                        predicate: "value pass at least one validation",
+                        valid: false,
+                        value: { id: "id", name: "name" },
+                    },
+                    {
+                        inverted: false,
+                        predicate: "value accept only the following keys: id",
+                        valid: false,
+                        value: { id: "id", name: "name" },
+                    },
+                    {
+                        inverted: false,
+                        predicate: "value accept only the following keys: name",
+                        valid: false,
+                        value: { id: "id", name: "name" },
+                    },
+                ]);
             });
         });
     });

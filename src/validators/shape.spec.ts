@@ -120,7 +120,7 @@ describe("shape", () => {
             {
                 valid: false,
                 inverted: false,
-                predicate: "Value accept only the following keys: name,email",
+                predicate: "value accept only the following keys: name,email",
                 value: {
                     name: "toto",
                     email: "toto@gmail.com",

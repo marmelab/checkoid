@@ -30,7 +30,7 @@ import {
 import { isBoolean } from "../validators/boolean";
 
 import { arrayOf } from "../validators/array";
-import { shape, isObject } from "../validators/object";
+import { shape, isObject, hasKeys } from "../validators/object";
 
 export type Schema = OpenAPIV3.SchemaObject;
 
@@ -118,7 +118,7 @@ export const schemaToValidator = (
                         schemaToValidator(schema, document)
                     );
                 },
-                validator(() => undefined)
+                validator(() => true, "value is valid")
             );
         }
         if (schema.anyOf) {
@@ -128,7 +128,7 @@ export const schemaToValidator = (
                         schemaToValidator(schema, document)
                     );
                 },
-                validator(() => "value must pass at least one validation")
+                validator(() => false, "value pass at least one validation")
             );
         }
         // @TODO handle schema with no type but oneOf, or not props
@@ -153,12 +153,17 @@ export const schemaToValidator = (
             );
         case "object": {
             if (schema.properties) {
-                return shape(schemasToValidators(schema.properties, document));
+                const schemaValidator = shape(
+                    schemasToValidators(schema.properties, document),
+                    true,
+                    schema.required || []
+                );
+
+                return schemaValidator;
             }
             return isObject;
         }
         default:
-            throw new Error("Unexpected schema type");
     }
 };
 

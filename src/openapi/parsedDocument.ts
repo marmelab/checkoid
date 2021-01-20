@@ -861,6 +861,15 @@ const document: OpenAPIV3.Document = {
                         description: "User Status",
                     },
                 },
+                required: [
+                    "id",
+                    "username",
+                    "firstName",
+                    "lastName",
+                    "email",
+                    "password",
+                    "userStatus",
+                ],
                 xml: {
                     name: "User",
                 },
@@ -876,6 +885,7 @@ const document: OpenAPIV3.Document = {
                         type: "string",
                     },
                 },
+                required: ["id", "name"],
                 xml: {
                     name: "Tag",
                 },

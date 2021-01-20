@@ -20,11 +20,11 @@ export const isLte = (max: number) =>
 
 export const isInteger = validator(
     (value) => Number.isInteger(value),
-    "Value is an integer"
+    "value is an integer"
 );
 
 export const isMultipleOf = (n: number) =>
     validator(
         (value) => (value % n ? true : false),
-        `Value is a multiple of ${n}`
+        `value is a multiple of ${n}`
     );
