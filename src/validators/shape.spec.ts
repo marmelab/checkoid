@@ -4,29 +4,22 @@ import { hasLengthGt } from "./length";
 import { match } from "./string";
 
 const isPresent = validator((value) => {
-    if (!!value) {
-        return;
-    }
-    return `value must be present`;
-});
+    return !!value;
+}, `value must be present`);
 
 const isLongerThanTree = hasLengthGt(3);
 
 const isAbsent = validator((value) => {
-    if (!!value) {
-        return `value can be absent`;
-    }
-});
+    return !value;
+}, `value can be absent`);
 const isEmail = match(/@/).format(() => `value must be an email`);
 
 const isPresentInDb = asyncValidator(async (id) => {
     await new Promise((resolve) => {
         setTimeout(resolve, 1);
     });
-    if (!id || id === "404") {
-        return `user does not exists`;
-    }
-});
+    return id && id !== 404 ? true : false;
+}, `user does not exists`);
 
 describe("shape", () => {
     it("should allow to create a validator for an user object given a simple spec", () => {
@@ -38,7 +31,12 @@ describe("shape", () => {
         const UserValidator = shape(userSpec);
 
         expect(UserValidator.check({ name: "toto" })).toEqual([
-            { key: ["email"], message: "value must be an email" },
+            {
+                key: ["email"],
+                valid: false,
+                inverted: false,
+                predicate: "value must be an email",
+            },
         ]);
         expect(
             UserValidator.check({ name: "toto", email: "toto@gmail.com" })
@@ -49,25 +47,48 @@ describe("shape", () => {
         ).toEqual([
             {
                 key: ["email"],
-                message: "value must be an email",
+                valid: false,
+                inverted: false,
+                predicate: "value must be an email",
                 value: "not an email",
             },
         ]);
         expect(UserValidator.check({ name: "", email: "" })).toEqual([
-            { key: ["name"], message: "value must be present", value: "" },
-            { key: ["email"], message: "value must be an email", value: "" },
+            {
+                key: ["name"],
+                valid: false,
+                inverted: false,
+                predicate: "value must be present",
+                value: "",
+            },
+            {
+                key: ["email"],
+                valid: false,
+                inverted: false,
+                predicate: "value must be an email",
+                value: "",
+            },
         ]);
 
         expect(UserValidator.check("toto")).toEqual([
-            { message: "value must be an object", value: "toto" },
+            {
+                valid: false,
+                inverted: false,
+                predicate: "value must be an object",
+                value: "toto",
+            },
             {
                 key: ["name"],
-                message: "value must be present",
+                valid: false,
+                inverted: false,
+                predicate: "value must be present",
                 value: undefined,
             },
             {
                 key: ["email"],
-                message: "value must be an email",
+                valid: false,
+                inverted: false,
+                predicate: "value must be an email",
                 value: undefined,
             },
         ]);
@@ -97,7 +118,9 @@ describe("shape", () => {
             })
         ).toEqual([
             {
-                message: "Value has extraneous keys: firstName",
+                valid: false,
+                inverted: false,
+                predicate: "Value has extraneous keys",
                 value: {
                     name: "toto",
                     email: "toto@gmail.com",
@@ -125,10 +148,18 @@ describe("shape", () => {
         expect(promise.then).toBeDefined();
 
         expect(await promise).toEqual([
-            { key: ["id"], message: "user does not exists", value: null },
+            {
+                key: ["id"],
+                valid: false,
+                inverted: false,
+                predicate: "user does not exists",
+                value: null,
+            },
             {
                 key: ["email"],
-                message: "value must be an email",
+                valid: false,
+                inverted: false,
+                predicate: "value must be an email",
                 value: "not an email",
             },
         ]);
@@ -153,27 +184,41 @@ describe("shape", () => {
         ).toEqual([
             {
                 key: ["email"],
-                message: "value must be an email",
+                valid: false,
+                inverted: false,
+                predicate: "value must be an email",
                 value: "not an email",
             },
             {
                 key: ["email"],
-                message: "value can be absent",
+                valid: false,
+                inverted: false,
+                predicate: "value can be absent",
                 value: "not an email",
             },
         ]);
         expect(UserValidator.check({ name: "", email: "" })).toEqual([
-            { key: ["name"], message: "value must be present", value: "" },
             {
                 key: ["name"],
-                message: "value must have a length greater than 3",
+                valid: false,
+                inverted: false,
+                predicate: "value must be present",
+                value: "",
+            },
+            {
+                key: ["name"],
+                valid: false,
+                inverted: false,
+                predicate: "value must have a length greater than 3",
                 value: "",
             },
         ]);
         expect(UserValidator.check({ name: "to", email: "" })).toEqual([
             {
                 key: ["name"],
-                message: "value must have a length greater than 3",
+                valid: false,
+                inverted: false,
+                predicate: "value must have a length greater than 3",
                 value: "to",
             },
         ]);
@@ -198,11 +243,26 @@ describe("shape", () => {
                 email: "toto@gmail.com",
             })
         ).toEqual([
-            { key: ["user"], message: "value must be an object" },
-            { key: ["user", "name"], message: "value must be present" },
+            {
+                key: ["user"],
+                valid: false,
+                inverted: false,
+                predicate: "value must be an object",
+                value: undefined,
+            },
             {
                 key: ["user", "name"],
-                message: "value must have a length greater than 3",
+                valid: false,
+                inverted: false,
+                predicate: "value must be present",
+                value: undefined,
+            },
+            {
+                key: ["user", "name"],
+                valid: false,
+                inverted: false,
+                predicate: "value must have a length greater than 3",
+                value: undefined,
             },
         ]);
     });

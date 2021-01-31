@@ -27,7 +27,7 @@ import {
     lift,
     AsyncValidation,
     SyncValidation,
-    InvalidResult,
+    ValidationResult,
 } from "./Validation";
 
 type Run<T extends SyncValidation | AsyncValidation> = (
@@ -53,19 +53,19 @@ export interface Validator<T extends SyncValidation | AsyncValidation> {
         : Validator<SyncValidation>;
     // apply function to the validated value before it get validated
     beforeHook: (fn: (x: any) => any) => Validator<T>;
-    // apply function to the InvalidResult if any
+    // apply function to the ValidationResult if any
     afterHook: (
-        fn: (r: InvalidResult, x: any) => InvalidResult
+        fn: (r: ValidationResult, x: any) => ValidationResult
     ) => Validator<T>;
-    //  like afterhook, but change only the message part of the InvalidResult
-    format: (fn: (r: InvalidResult) => string) => Validator<T>;
+    //  like afterhook, but change only the message part of the ValidationResult
+    format: (fn: (r: ValidationResult) => string) => Validator<T>;
     map: (fn: Function) => Validator<T>;
     chain: (fn: Function) => Validator<T>;
     check: (
         x: any
     ) => T extends SyncValidation
-        ? InvalidResult[] | void
-        : Promise<void | InvalidResult[]>;
+        ? ValidationResult[] | void
+        : Promise<void | ValidationResult[]>;
 }
 
 /**
@@ -85,13 +85,13 @@ export const createValidator = <T extends SyncValidation | AsyncValidation>(
     afterHook: (fn) =>
         createValidator(run).chain((x: any) =>
             getEntry().map((entry: any) =>
-                x.format((message: InvalidResult) => fn(message, entry))
+                x.format((message: ValidationResult) => fn(message, entry))
             )
         ),
     format: (fn) =>
         createValidator(run).afterHook((result) => ({
             ...result,
-            message: fn(result),
+            predicate: fn(result),
         })),
     map: (fn) => createValidator((x) => fn(run(x))),
     chain: (fn) => createValidator((x) => fn(run(x)).run(x)),
@@ -106,9 +106,11 @@ export const getEntry = <
 >(): Validator<T> => createValidator((x) => x);
 
 export const asyncValidator = (
-    fn: (x: any) => Promise<string | void>
-): Validator<AsyncValidation> => createValidator(asyncLift(fn));
+    fn: (x: any) => Promise<boolean>,
+    name: string
+): Validator<AsyncValidation> => createValidator(asyncLift(fn, name));
 
 export const validator = (
-    fn: (x: any) => string | void
-): Validator<SyncValidation> => createValidator(lift(fn));
+    fn: (x: any) => boolean,
+    name: string
+): Validator<SyncValidation> => createValidator(lift(fn, name));
