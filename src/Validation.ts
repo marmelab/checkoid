@@ -1,26 +1,14 @@
-/**
- * Validation semigroup
- * A semigroup is a monoid with two operation instead of one
- * Number addition is a monoid add multiplication and you get a semigroup
- *
- * Valiation is a set composed of Valid, InvalidValidation and AsyncValidation
- * It has two operations `and` and `or`.
- * When combining two validation with `and` or `or` you will always get back a Validation
- * Validation is internal and allows Validator to be combined
- */
-
-export interface InvalidResult {
+export interface ValidationResult {
     value: any;
-    message: string;
+    predicate: string;
+    valid: boolean;
+    inverted: boolean;
     key?: string[];
 }
 
-/**
- * ValidValidation is a Validation that passed. It holds no value
- */
 export interface ValidValidation {
     isValid: true;
-    x: undefined;
+    results: ValidationResult[];
     fork: undefined;
     and(
         other: ValidValidation | InvalidValidation | AsyncValidation
@@ -33,104 +21,47 @@ export interface ValidValidation {
     ): ValidValidation | AsyncValidation;
     or(other: ValidValidation | InvalidValidation): ValidValidation;
     or(other: AsyncValidation): AsyncValidation;
+    xor(
+        other: ValidValidation | InvalidValidation | AsyncValidation
+    ): ValidValidation | InvalidValidation | AsyncValidation;
+    not(): InvalidValidation;
     format: (
         fn: (
-            invalidResult: InvalidResult,
+            invalidResult: ValidationResult,
             index: number,
-            all: InvalidResult[]
-        ) => InvalidResult
+            all: ValidationResult[]
+        ) => ValidationResult
     ) => ValidValidation;
-    getResult: () => void;
+    getResult: () => undefined;
 }
-
-// function to create a ValidValidation
-export const validValidation = (): ValidValidation => ({
-    isValid: true,
-    x: undefined,
-    fork: undefined,
-    and(other: any): any {
-        if (isAsync(other)) {
-            other;
-            return asyncValidation
-                .of(validValidation())
-                .and(other) as AsyncValidation;
-        }
-
-        if (isInvalidValidation(other)) {
-            return other;
-        }
-
-        if (isValidValidation(other)) {
-            return validValidation();
-        }
-    },
-    or: (other: any): any => {
-        // If other is Async convert ValidValidation to Async(ValidValidation)
-        if (isAsync(other)) {
-            return asyncValidation.of(validValidation());
-        }
-        return validValidation();
-    }, // no matter the other we keep the validValidation value
-    format: (fn) => validValidation(),
-    getResult: () => undefined,
-});
-
-/**
- * InvalidValidation is a Validation that failed. It holds an array of InvalidResult
- */
 export interface InvalidValidation {
-    x: InvalidResult[];
     isValid: false;
+    results: ValidationResult[];
     fork: undefined;
     and(
         other: ValidValidation | InvalidValidation | AsyncValidation
     ): InvalidValidation | AsyncValidation;
-    and(other: AsyncValidation): AsyncValidation;
     and(other: ValidValidation | InvalidValidation): InvalidValidation;
-
+    and(other: AsyncValidation): AsyncValidation;
     or(
         other: ValidValidation | InvalidValidation | AsyncValidation
     ): ValidValidation | InvalidValidation | AsyncValidation;
-    or(other: AsyncValidation): AsyncValidation;
     or(other: ValidValidation): ValidValidation;
     or(other: InvalidValidation): InvalidValidation;
+    or(other: AsyncValidation): AsyncValidation;
+    xor(
+        other: ValidValidation | InvalidValidation | AsyncValidation
+    ): ValidValidation | InvalidValidation | AsyncValidation;
+    not(): ValidValidation;
     format: (
         fn: (
-            invalidResult: InvalidResult,
+            invalidResult: ValidationResult,
             index: number,
-            all: InvalidResult[]
-        ) => InvalidResult
+            all: ValidationResult[]
+        ) => ValidationResult
     ) => InvalidValidation;
-    getResult: () => InvalidResult[];
+    getResult: () => ValidationResult[];
 }
-
-// function to create an invalid, it takes an array of InvalidResult
-export const invalidValidation = (x: InvalidResult[]): InvalidValidation => ({
-    x,
-    isValid: false,
-    fork: undefined,
-    and: (other: any): any => {
-        if (isAsync(other)) {
-            return asyncValidation.of(invalidValidation(x)).and(other);
-        }
-
-        return isInvalidValidation(other)
-            ? invalidValidation(x.concat(other.x))
-            : invalidValidation(x);
-    },
-    or: (other: any): any => {
-        if (isAsync(other)) {
-            return asyncValidation.of(invalidValidation(x)).or(other);
-        }
-        return isInvalidValidation(other)
-            ? invalidValidation(x.concat(other.x))
-            : validValidation();
-    },
-    format: (fn) => invalidValidation(x.map(fn)), // allows to apply function to invalidValidation message
-    getResult: () => x,
-});
-
-export type SyncValidation = ValidValidation | InvalidValidation;
 
 /**
  * Type for a function that takes two callback
@@ -145,100 +76,249 @@ type Fork = (
     reject: (value: Error) => void
 ) => void;
 
-/**
- * AsyncValidation is a Validation that has not yet resolved.
- * It holds a fork function that will resolve to either a ValidValidation or an Invalid
- */
 export interface AsyncValidation {
-    x: undefined;
-    fork: Fork;
     isValid: undefined;
+    results: undefined;
+    fork: Fork;
     and(
-        v: ValidValidation | InvalidValidation | AsyncValidation
+        other: ValidValidation | InvalidValidation | AsyncValidation
     ): AsyncValidation;
     or(
-        v: ValidValidation | InvalidValidation | AsyncValidation
+        other: ValidValidation | InvalidValidation | AsyncValidation
     ): AsyncValidation;
+    xor(
+        other: ValidValidation | InvalidValidation | AsyncValidation
+    ): AsyncValidation;
+    not(): AsyncValidation;
     format: (
         fn: (
-            invalidResult: InvalidResult,
+            invalidResult: ValidationResult,
             index: number,
-            all: InvalidResult[]
-        ) => InvalidResult
+            all: ValidationResult[]
+        ) => ValidationResult
     ) => AsyncValidation;
-    getResult: () => Promise<void | InvalidResult[]>;
+    getResult: () => Promise<void | ValidationResult[]>;
 }
 
-const isValidValidation = (
-    value: ValidValidation | InvalidValidation | AsyncValidation
+export type SyncValidation = ValidValidation | InvalidValidation;
+
+export const isValidValidation = (
+    value: ValidValidation | InvalidValidation
 ): value is ValidValidation => value.isValid;
 
 const isInvalidValidation = (
-    value: ValidValidation | InvalidValidation | AsyncValidation
+    value: ValidValidation | InvalidValidation
 ): value is InvalidValidation => value.isValid === false;
 
-const isAsync = (
+const isAsyncValidation = (
     value: ValidValidation | InvalidValidation | AsyncValidation
 ): value is AsyncValidation => !!value.fork;
 
-// function to create an asyncValidation
-// it takes a fork function like a promise would, unlike a promise,
-// it will not execute the function until getResult is called
-export const asyncValidation = (fork: Fork): AsyncValidation => ({
+const invertResult = (result: ValidationResult) => ({
+    ...result,
+    inverted: !result.inverted,
+});
+
+export const createValidValidation = (
+    results: ValidationResult[]
+): ValidValidation => ({
+    results,
+    isValid: true,
+    fork: undefined,
+    and(other: any): any {
+        if (isAsyncValidation(other)) {
+            other;
+            return createAsyncValidation
+                .of(createValidValidation(results))
+                .and(other) as AsyncValidation;
+        }
+        if (isInvalidValidation(other)) {
+            return createInvalidValidation(results.concat(other.results));
+        }
+
+        if (isValidValidation(other)) {
+            return createValidValidation(results.concat(other.results));
+        }
+    },
+    or(other: any): any {
+        if (isAsyncValidation(other)) {
+            other;
+            return createAsyncValidation
+                .of(createValidValidation(results))
+                .or(other) as AsyncValidation;
+        }
+        if (isInvalidValidation(other)) {
+            return createValidValidation(results);
+        }
+        if (isValidValidation(other)) {
+            return createValidValidation(results.concat(other.results));
+        }
+    },
+    xor(other: any): any {
+        if (isAsyncValidation(other)) {
+            other;
+            return createAsyncValidation
+                .of(createValidValidation(results))
+                .xor(other) as AsyncValidation;
+        }
+
+        if (isInvalidValidation(other)) {
+            return createValidValidation(results.concat(other.results));
+        }
+
+        if (isValidValidation(other)) {
+            return createInvalidValidation(
+                results.concat(other.results).map(invertResult)
+            );
+        }
+    },
+    not() {
+        return createInvalidValidation(results.map(invertResult));
+    },
+    format: (fn) => createValidValidation(results.map(fn)),
+    getResult() {
+        return undefined;
+    },
+});
+
+export const createInvalidValidation = (
+    results: ValidationResult[]
+): InvalidValidation => ({
+    results,
+    isValid: false,
+    fork: undefined,
+    and(other: any): any {
+        if (isAsyncValidation(other)) {
+            other;
+            return createAsyncValidation
+                .of(createInvalidValidation(results))
+                .and(other) as AsyncValidation;
+        }
+
+        if (isValidValidation(other)) {
+            return createInvalidValidation(results.concat(other.results));
+        }
+
+        return createInvalidValidation(results.concat(other.results));
+    },
+    or(other: any): any {
+        if (isAsyncValidation(other)) {
+            other;
+            return createAsyncValidation
+                .of(createInvalidValidation(results))
+                .or(other) as AsyncValidation;
+        }
+        if (isInvalidValidation(other)) {
+            return createInvalidValidation(results.concat(other.results));
+        }
+
+        if (isValidValidation(other)) {
+            return createValidValidation(other.results);
+        }
+    },
+    xor(other: any): any {
+        if (isAsyncValidation(other)) {
+            other;
+            return createAsyncValidation
+                .of(createInvalidValidation(results))
+                .xor(other) as AsyncValidation;
+        }
+        if (isInvalidValidation(other)) {
+            return createInvalidValidation(results.concat(other.results));
+        }
+
+        if (isValidValidation(other)) {
+            return createValidValidation(results.concat(other.results));
+        }
+    },
+    not() {
+        return createValidValidation(results.map(invertResult));
+    },
+    format: (fn) => createInvalidValidation(results.map(fn)),
+    getResult() {
+        return results.filter(({ valid, inverted }) => valid === inverted);
+    },
+});
+
+export const createAsyncValidation = (fork: Fork): AsyncValidation => ({
     isValid: undefined,
-    x: undefined,
-    and: (other) =>
-        asyncValidation((resolve, reject) =>
+    results: undefined,
+    fork,
+    and(other) {
+        return createAsyncValidation((resolve, reject) =>
             fork((result1: any) => {
-                (isAsync(other)
+                (isAsyncValidation(other)
                     ? other
-                    : asyncValidation.of(
+                    : createAsyncValidation.of(
                           other as ValidValidation | InvalidValidation
                       )
                 ).fork((result2) => resolve(result1.and(result2)), reject);
             }, reject)
-        ),
-    or: (other) =>
-        asyncValidation((resolve, reject) =>
+        );
+    },
+    or(other) {
+        return createAsyncValidation((resolve, reject) =>
             fork((result1: any) => {
-                (isAsync(other)
+                (isAsyncValidation(other)
                     ? other
-                    : asyncValidation.of(
+                    : createAsyncValidation.of(
                           other as ValidValidation | InvalidValidation
                       )
                 ).fork((result2) => resolve(result1.or(result2)), reject);
             }, reject)
-        ),
+        );
+    },
+    xor(other) {
+        return createAsyncValidation((resolve, reject) =>
+            fork((result1: any) => {
+                (isAsyncValidation(other)
+                    ? other
+                    : createAsyncValidation.of(
+                          other as ValidValidation | InvalidValidation
+                      )
+                ).fork((result2) => resolve(result1.xor(result2)), reject);
+            }, reject)
+        );
+    },
+    not() {
+        return createAsyncValidation((resolve, reject) =>
+            fork((validation: ValidValidation | InvalidValidation) => {
+                resolve(validation.not());
+            }, reject)
+        );
+    },
     format: (fn) =>
-        asyncValidation((resolve, reject) =>
+        createAsyncValidation((resolve, reject) =>
             fork((result) => resolve(result.format(fn)), reject)
         ),
-    fork,
-    getResult: () =>
-        new Promise(
+    getResult() {
+        return new Promise(
             fork
         ).then((validation: ValidValidation | InvalidValidation) =>
             validation.getResult()
-        ),
+        );
+    },
 });
 
 // Convert ValidValidation or InvalidValidation into AsyncValidation
-asyncValidation.of = (
+createAsyncValidation.of = (
     a: ValidValidation | InvalidValidation
-): AsyncValidation => asyncValidation((resolve) => resolve(a));
+): AsyncValidation => createAsyncValidation((resolve) => resolve(a));
 // helper to create an AsyncValidation that will resolve to a Valid
-asyncValidation.validValidation = () =>
-    asyncValidation((resolve) => resolve(validValidation()));
+createAsyncValidation.validValidation = (results: ValidationResult[]) =>
+    createAsyncValidation((resolve) => resolve(createValidValidation(results)));
 // helper to create an AsyncValidation that will resolve to an InvalidValidation holding the given InvalidResults
-asyncValidation.invalidValidation = (a: InvalidResult[]) =>
-    asyncValidation((resolve) => resolve(invalidValidation(a)));
+createAsyncValidation.invalidValidation = (results: ValidationResult[]) =>
+    createAsyncValidation((resolve) =>
+        resolve(createInvalidValidation(results))
+    );
 
 /**
  * Takes a synchronous validation function returnning either a string or undefined
  * Return a new function that return A ValidValidation when the original function would return undefined
  * or an invalidValidation when the original function would return a string
  * */
-export function lift(fn: (x: any) => string | void) {
+export function lift(fn: (x: any) => boolean, predicate: string) {
     return (value: any) => {
         const result = fn(value);
         if (result && (result as any).then) {
@@ -247,11 +327,13 @@ export function lift(fn: (x: any) => string | void) {
             );
         }
 
-        if (result) {
-            return invalidValidation([{ message: result, value }]);
-        }
-
-        return validValidation();
+        return result
+            ? createValidValidation([
+                  { predicate, valid: result, value, inverted: false },
+              ])
+            : createInvalidValidation([
+                  { predicate, valid: result, value, inverted: false },
+              ]);
     };
 }
 
@@ -259,18 +341,33 @@ export function lift(fn: (x: any) => string | void) {
  * Takes an async validation function that resolve to either a string or undefined
  * Return a new function that return an AsyncValidation
  * */
-export const asyncLift = (fn: (x: any) => Promise<string | void>) => (
-    value: any
-) =>
-    asyncValidation((resolve, reject) => {
+export const asyncLift = (
+    fn: (x: any) => Promise<boolean>,
+    predicate: string
+) => (value: any) =>
+    createAsyncValidation((resolve, reject) => {
         try {
             // Promise.resolve will convert the function result to a promise if it is not
             Promise.resolve(fn(value))
                 .then((result) =>
                     resolve(
                         result
-                            ? invalidValidation([{ message: result, value }])
-                            : validValidation()
+                            ? createValidValidation([
+                                  {
+                                      predicate,
+                                      valid: result,
+                                      value,
+                                      inverted: false,
+                                  },
+                              ])
+                            : createInvalidValidation([
+                                  {
+                                      predicate,
+                                      valid: result,
+                                      value,
+                                      inverted: false,
+                                  },
+                              ])
                     )
                 )
                 .catch(reject);

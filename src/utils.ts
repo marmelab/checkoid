@@ -1,8 +1,10 @@
-import { Validator } from "./Validator";
-import { SyncValidation, AsyncValidation } from "./Validation";
+import { ValidationResult } from "./Validation";
 
 export const and = (validator1: any, validator2: any) =>
     validator1.and(validator2);
+
+export const andMany = ([firstValidator, ...validators]: any[]) =>
+    validators.reduce(and, firstValidator);
 
 /**
  *
@@ -25,16 +27,21 @@ const keysToPath = (
 ): string[] => [].concat(key1).concat(isDefined(key2) ? key2 : []);
 
 const normalizeMessage = (
-    message: string | { message: string; key?: string[]; value: any }
-): { message: string; key?: string[]; value?: any } => {
+    message: string | ValidationResult
+): ValidationResult => {
     if (typeof message === "string") {
-        return { message };
+        return {
+            predicate: message,
+            valid: false,
+            inverted: false,
+            value: null,
+        };
     }
     return message;
 };
 
 export const addKeyToMessage = (key: string | number) => (
-    msg: string | { message: string; key?: string[]; value: any },
+    msg: string | ValidationResult,
     entry: any
 ) => {
     const message = normalizeMessage(msg);

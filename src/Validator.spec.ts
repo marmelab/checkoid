@@ -2,27 +2,19 @@ import { validator, asyncValidator } from "./Validator";
 import { match } from "./validators/string";
 
 const isEmpty = validator((value) => {
-    if (!!value) {
-        return `value is optional`;
-    }
-});
-const isEmail = match(/@/).format(() => `value must be an email`);
+    return !value ? true : false;
+}, "value is optional");
+const isEmail = match(/@/).format(() => `value is an email`);
 const isPresent = validator((value) => {
-    if (!!value) {
-        return;
-    }
-    return `value must be present`;
-});
+    return !!value;
+}, "value is present");
 
 describe("Validator", () => {
     describe("validator", () => {
         it("should allow to run validator returning Validation", () => {
             const validate = validator((value) => {
-                if (/@/.test(value)) {
-                    return;
-                }
-                return `value must be an email`;
-            });
+                return /@/.test(value);
+            }, "value is an email");
 
             const validValidation = validate.check("some@email.com");
             expect(validValidation).toBeUndefined();
@@ -32,8 +24,10 @@ describe("Validator", () => {
             );
             expect(invalidValidation).toEqual([
                 {
-                    message: "value must be an email",
+                    predicate: "value is an email",
+                    valid: false,
                     value: "I will type whatever I want",
+                    inverted: false,
                 },
             ]);
         });
@@ -46,15 +40,30 @@ describe("Validator", () => {
 
             const noValueValidation = isPresent.and(isEmail).check("");
             expect(noValueValidation).toEqual([
-                { message: "value must be present", value: "" },
-                { message: "value must be an email", value: "" },
+                {
+                    predicate: "value is present",
+                    valid: false,
+                    value: "",
+                    inverted: false,
+                },
+                {
+                    predicate: "value is an email",
+                    valid: false,
+                    value: "",
+                    inverted: false,
+                },
             ]);
 
             const invalidEmailValidation = isPresent
                 .and(isEmail)
                 .check("whatever");
             expect(invalidEmailValidation).toEqual([
-                { message: "value must be an email", value: "whatever" },
+                {
+                    predicate: "value is an email",
+                    valid: false,
+                    value: "whatever",
+                    inverted: false,
+                },
             ]);
         });
 
@@ -69,8 +78,66 @@ describe("Validator", () => {
                 .or(isEmpty)
                 .check("whatever");
             expect(invalidEmailValidation).toEqual([
-                { message: "value must be an email", value: "whatever" },
-                { message: "value is optional", value: "whatever" },
+                {
+                    predicate: "value is an email",
+                    valid: false,
+                    value: "whatever",
+                    inverted: false,
+                },
+                {
+                    predicate: "value is optional",
+                    valid: false,
+                    value: "whatever",
+                    inverted: false,
+                },
+            ]);
+        });
+
+        it("should allow to combine validator with xor", () => {
+            const fooXorBarValidator = match(/foo/).xor(match(/bar/));
+            expect(fooXorBarValidator.check("foo is good")).toBeUndefined();
+            expect(fooXorBarValidator.check("bar is ggod")).toBeUndefined();
+            expect(fooXorBarValidator.check("but if I say foobar")).toEqual([
+                {
+                    predicate: "value match pattern /foo/",
+                    valid: true,
+                    inverted: true,
+                    value: "but if I say foobar",
+                },
+                {
+                    predicate: "value match pattern /bar/",
+                    valid: true,
+                    inverted: true,
+                    value: "but if I say foobar",
+                },
+            ]);
+            expect(fooXorBarValidator.check("or if I say neither")).toEqual([
+                {
+                    predicate: "value match pattern /foo/",
+                    valid: false,
+                    inverted: false,
+                    value: "or if I say neither",
+                },
+                {
+                    predicate: "value match pattern /bar/",
+                    valid: false,
+                    inverted: false,
+                    value: "or if I say neither",
+                },
+            ]);
+        });
+
+        describe("I can invert validator behavior with not", () => {
+            const isNotEmail = isEmail.not();
+
+            expect(isNotEmail.check("not an email")).toBeUndefined();
+            expect(isNotEmail.check("my.adress@gmail.fr")).toEqual([
+                {
+                    predicate: "value is an email",
+                    valid: true,
+                    inverted: true,
+                    value: "my.adress@gmail.fr",
+                },
             ]);
         });
     });
@@ -80,10 +147,8 @@ describe("Validator", () => {
             await new Promise((resolve) => {
                 setTimeout(resolve, 1);
             });
-            if (id === "404") {
-                return `user does not exists`;
-            }
-        });
+            return id !== "404";
+        }, `user does not exists`);
         it("should support async validator function", async () => {
             const validValidation = await isPresentInDb.check("200");
             expect(validValidation).toBeUndefined();
@@ -92,14 +157,24 @@ describe("Validator", () => {
                 .and(isPresentInDb)
                 .check("404");
             expect(invalidValidation).toEqual([
-                { message: "user does not exists", value: "404" },
+                {
+                    predicate: "user does not exists",
+                    valid: false,
+                    value: "404",
+                    inverted: false,
+                },
             ]);
 
             const invalidValidation2 = await isPresent
                 .and(isPresentInDb)
                 .check("");
             expect(invalidValidation2).toEqual([
-                { message: "value must be present", value: "" },
+                {
+                    predicate: "value is present",
+                    valid: false,
+                    value: "",
+                    inverted: false,
+                },
             ]);
         });
 
@@ -110,7 +185,12 @@ describe("Validator", () => {
 
             expect(andPromise.then).toBeDefined();
             expect(await andPromise).toEqual([
-                { message: "user does not exists", value: "404" },
+                {
+                    predicate: "user does not exists",
+                    valid: false,
+                    value: "404",
+                    inverted: false,
+                },
             ]);
 
             const orValidator = isPresentInDb.or(isEmpty);
@@ -119,8 +199,18 @@ describe("Validator", () => {
 
             expect(orPromise.then).toBeDefined();
             expect(await orPromise).toEqual([
-                { message: "user does not exists", value: "404" },
-                { message: "value is optional", value: "404" },
+                {
+                    predicate: "user does not exists",
+                    valid: false,
+                    value: "404",
+                    inverted: false,
+                },
+                {
+                    predicate: "value is optional",
+                    valid: false,
+                    value: "404",
+                    inverted: false,
+                },
             ]);
         });
 
@@ -131,7 +221,12 @@ describe("Validator", () => {
 
             expect(andPromise.then).toBeDefined();
             expect(await andPromise).toEqual([
-                { message: "user does not exists", value: "404" },
+                {
+                    predicate: "user does not exists",
+                    valid: false,
+                    value: "404",
+                    inverted: false,
+                },
             ]);
 
             const orValidator = isEmpty.or(isPresentInDb);
@@ -140,8 +235,18 @@ describe("Validator", () => {
 
             expect(orPromise.then).toBeDefined();
             expect(await orPromise).toEqual([
-                { message: "value is optional", value: "404" },
-                { message: "user does not exists", value: "404" },
+                {
+                    predicate: "value is optional",
+                    valid: false,
+                    value: "404",
+                    inverted: false,
+                },
+                {
+                    predicate: "user does not exists",
+                    valid: false,
+                    value: "404",
+                    inverted: false,
+                },
             ]);
         });
     });

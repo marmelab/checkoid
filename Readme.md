@@ -12,24 +12,19 @@ Simply pass a function, that either return a value for an error, or nothing if t
 import { validator } = from 'checkoid';
 
 const isEmail = validator((value) => {
-    if (/@/.test(value)) {
-        return;
-    }
-    return 'value must be an email';
-});
+    return /@/.test(value);
+}, 'value is an email');
 const isNotGmail = validator((value) => {
-    if (/gmail.com/.test(value)) {
-        return 'value must not be a gmail adress';
-    }
-});
+    return !/gmail.com/.test(value);
+}, 'value is not a gmail adress');
 
 isEmail.check('test@gmail.com'); // undefined
 isNotGmail.check('test@gmail.com'); 
-// [{ message: 'value must not be a gmail adress', value: 'test@gmail.com' }]
+// [{ predicate: 'value is not a gmail adress', valid: false, value: 'test@gmail.com' }]
 isEmail.check('whatever');
-// [{ message: 'value must be an email', value: 'whatever' }]
+// [{ predicate: 'value is an email', valid: false, value: 'whatever' }]
 isNotGmail.check('whatever');
-// [{ message: 'value must not be a gmail adress', value: 'whatever' }]
+// [{ predicate: 'value is not a gmail adress', valid: false, value: 'whatever' }]
 ```
 
 And then combine them with `and`
@@ -38,11 +33,11 @@ And then combine them with `and`
 const isEmailNotFromGMail = isEMail.and(isNotGmail);
 isEmailNotFromGMail.check('whatever');
 // [
-//    { message: 'value must be an email', value: 'whatever' },
-//    { message: 'value must not be a gmail adress', value: 'test@gmail.com' }
+//    { predicate: 'value is an email', valid: false, value: 'whatever' },
+//    { predicate: 'value is not a gmail adress', valid: false, value: 'test@gmail.com' }
 // ]
 isEmailNotFromGMail.check('test@gmail.com'); 
-// [{ message: 'value must not be a gmail adress', value: 'test@gmail.com' }]
+// [{ predicate: 'value is not a gmail adress', valid: false, value: 'test@gmail.com' }]
 isEmailNotFromGMail.check('test@free.fr'); // undefined
 ```
 
@@ -50,10 +45,8 @@ Or with or
 
 ```js
 const isEmpty = validator((value) => {
-    if (!!value) {
-        return 'value is not empty';
-    }
-});
+    return !!value;
+}, 'value is empty');
 
 const isOptionalEmail = isEmail.or(isEmpty);
 
@@ -61,9 +54,44 @@ isOptionalEmail.check(''); // undefined
 isOptionalEmail.check('test@gmail.com'); // undefined
 isOptionalEmail.check('invalid mail');
 // [
-//     { message: 'value must be an email', value: 'invalid mail' },
-//     { message: ''value is not empty'', value: 'invalid mail' }
+//     { predicate: 'value is an email', valid: false, value: 'invalid mail' },
+//     { predicate: 'value is empty', valid: false, value: 'invalid mail' }
 // ]
+```
+
+Even with xor
+
+```js
+const hasFoo = validator((value) => {
+    return !!value.foo;
+}, 'value has foo');
+const hasBar = validator((value) => {
+    return !!value.bar;
+}, 'value has bar');
+
+const hadFooOrBarButNotBoth = hasFoo.xor(hasBar);
+
+isOptionalEmail.check({ foo: true }); // undefined
+isOptionalEmail.check({ bar: true }); // undefined
+isOptionalEmail.check({});
+// [
+//     { predicate: 'value has foo', valid: false, value: {} },
+//     { predicate: 'value has bar', valid: false, value: {} }
+// ]
+isOptionalEmail.check({ foo: true, bar: true });
+// [
+//     { predicate: 'value has foo', valid: true, inverted: true, value: {} },
+//     { predicate: 'value has bar', valid: true, inverted: true, value: {} }
+// ]
+```
+
+You can invert a validator with not.
+
+```js
+const isNoEmail = isEmail.not();
+isNoEmail.check('whatever'); // undefined
+isNoEmail.check('test@gmail.com'); 
+// [{ predicate: 'value is an email', valid: true, inverted: true, value: 'test@gmail.com' }]
 ```
 
 You can validate object too
@@ -72,22 +100,23 @@ You can validate object too
 import { shape } = from 'checkoid';
 
 const isGreaterThan = length => validator(value => {
-    if (value && value.length <= length) {
-        return `value must be at least ${length} characters long`;
-    }
-})
+    return value && value.length > length;
+}, `value is at least ${length} characters long`);
 
 // objectValidator takes an object of other validator and returns a validator
 const validateUser = shape({
-    email: isEmail.or(isAbsent),
+    email: isEmail.or(isEmpty),
     password: isGreaterThan(8),
 });
 
 validateUser.check({ email: 'john@gmail.com', password: 'shouldnotdisplaythis' }) // undefined
 validateUser.check({ email: 'john@gmail.com', password: 'secret' })
-// [{ key: ['password'], message: 'value must be at least 8 characters long', value: 'secret' }]
+// [{ key: ['password'], predicate: 'value is at least 8 characters long', valid: false, value: 'secret' }]
 validateUser.check('Hi I am John a valid user')
-// [{ message: 'value must be an object', value: 'Hi I am John a valid user' }]
+// [
+//     { predicate: 'value is an object', valid: false, value: 'Hi I am John a valid user' },
+//     { key: ['password'], predicate: 'value is at least 8 characters long', valid: false, value: undefined' },
+// ]
 ```
 
 Or array
@@ -101,8 +130,8 @@ const isEmailList = arrayOf(isEmail);
 isEmailList.check([]); // undefined
 isEmailList.check(['test@test.com', 'john@doe.com']); // undefined
 isEmailList.check(['test@test.com', 'I am a valid email', 'john@doe.com']);
-// [{ key: [1], message: 'value must be an email', value: 'I am a valid email' }]
-isEmailList.check('I am an email list'); // [{ message: 'value must be an array', value: 'I am an email list' }]
+// [{ key: [1], predicate: 'value is an email', valid: false, value: 'I am a valid email' }]
+isEmailList.check('I am an email list'); // [{ predicate: 'value is an array', valid: false, value: 'I am an email list' }]
 ```
 
 Or array of object
@@ -122,8 +151,8 @@ isUserList.check([
     { email: 'jane@gmail.com', password: '1234' },
 ]); 
 // [
-//    { key: [1], mesage: 'value is not an object', value: 'I am an user' },
-//    { key: [2, 'password'], message: 'value must be at least 8 characters long', value: '1234' },
+//    { key: [1], mesage: 'value is an object', valid: false, value: 'I am an user' },
+//    { key: [2, 'password'], predicate: 'value is at least 8 characters long', valid: false, value: '1234' },
 // ]
 ```
 
@@ -136,16 +165,13 @@ import { asyncValidator } = from 'checkoid';
 
 const doesUserIdExists = asyncValidator(async value => {
     const user = await fetchUser(value);
-    if (user) {
-        return;
-    }
+    return !!user;
 
-    return 'There is no user with this id';
-});
+}, 'There is a user with this id');
 
 // with an asynchronous validator the check method return a promise
 await doesUserIdExists.check('badId');
-// [{ message: 'There is no user with this id', value: 'badId' }]
+// [{ predicate: 'There is a user with this id', valid: false, value: 'badId' }]
 await doesUserIdExists.check('goodId'); // undefined'
 ```
 
@@ -162,7 +188,7 @@ Function to create a validator. It takes a simple validation function that take 
 import { validator } from 'checkoid';
 const isEqual10 = validator(value => value === 10 ? undefined : 'value must be 10');
 isEqual10.check(10) // undefined
-isEqual10.check(5) // [{ message: 'value must be 10', value: 5 }]
+isEqual10.check(5) // [{ predicate: 'value must be 10', value: 5 }]
 ```
 
 ### asyncValidator
@@ -184,7 +210,7 @@ const doesUserIdExists = asyncValidator(async value => {
 
 // with an async validator the check method return a promise
 await doesUserIdExists.check('badId');
-// [{ message: 'There is no user with this id', value: 'badId' }]
+// [{ predicate: 'There is no user with this id', value: 'badId' }]
 await doesUserIdExists.check('goodId'); // undefined'
 ```
 
@@ -201,7 +227,7 @@ If the validator is async, the result will get wrapped inside a promise
 
 It possess the following preoperty :
 
-- message: The message returned by the validation function
+- predicate: The message returned by the validation function
 - value: The value that has been tested. In the case of a shape or arrayOf validator this will be the targeted nested value and not the whole object or array.
 - key: Optional, the key of the value being tested if applyable
 
@@ -214,12 +240,12 @@ const isGt3 = isGt(3).and(isNumber);
 isGt3.check(4); // undefined
 isGt3.check(1); 
 // [
-//    { message: 'value must be greater than 3', value: 1 },
+//    { predicate: 'value must be greater than 3', value: 1 },
 // ]
 isGt3.check('four); 
 // [
-//    { message: 'value must be greater than 3', value: 'four' },
-//    { message: 'value must be a number', value: 'four' },
+//    { predicate: 'value must be greater than 3', value: 'four' },
+//    { predicate: 'value must be a number', value: 'four' },
 // ]
 ```
 
@@ -234,11 +260,11 @@ const isEmail = validator((value) => {
     if (/@/.test(value)) {
         return;
     }
-    return 'value must be an email';
+    return 'value is an email';
 });
 const isEmpty = validator((value) => {
-    if (!!value) {
-        return 'value is not empty';
+    if (!value) {
+        return 'value is empty';
     }
 });
 
@@ -248,8 +274,7 @@ isOptionalEmail.check(''); // undefined
 isOptionalEmail.check('test@gmail.com'); // undefined
 isOptionalEmail.check('invalid mail');
 // [
-//     { message: 'value must be an email', value: 'invalid mail' },
-//     { message: 'value is not empty', value: 'invalid mail' }
+//     { predicate: 'value is an email', valid: false, value: 'invalid mail' },
 // ]
 ```
 
@@ -259,12 +284,12 @@ This allows to change the message part of the return value.
 This function returns a new validator.
 
 ```js
-const isEmail = match(/@/).format(({ message, value }) => `value: "${value}" is not a valid email`);
+const isEmail = match(/@/).format(({ message, value }) => `value: "${value}" is a valid email`);
 
 
 isEmail.check('test@gmail.com'); // undefined
 isEmail.check('whatever');
-// [{ message: 'value: "whatever" is not a valid email', value: 'whatever' }]
+// [{ predicate: 'value: "whatever" is a valid email', valid: false, value: 'whatever' }]
 ```
 
 #### beforeHook
@@ -276,7 +301,7 @@ import { hasLengthGt } from 'checkoid';
 const isLongerThan8 = hasLengthGt(8).beforeHook(value => value.trim());
 
 isLongerThan8.check('   hey     ');
-// [{ message: 'value must have a length greater than 8', value: 'hey' }]
+// [{ predicate: 'value has a length greater than 8', valid: false, value: 'hey' }]
 
 ```
 
@@ -314,7 +339,7 @@ Take a minimum value and returns a validator that check if the value is greater 
 import { isGt } from 'checkoid';
 const isGreaterThanFive = isGt(5);
 isGreaterThanFive.check(6); // undefined
-isGreaterThanFive.check(1); // [{ message: 'value must be greater than 5', value: 1 }]
+isGreaterThanFive.check(1); // [{ predicate: 'value is greater than 5', value: 1 }]
 ```
 
 #### isGte
@@ -324,7 +349,7 @@ Take a minimum value and returns a validator that check if the value is greater 
 import { isGte } from 'checkoid';
 const isAtLeastFive = isGte(5);
 isAtLeastFive.check(6); // undefined
-isAtLeastFive.check(1); // [{ message: 'value must be at least 5', value: 1 }]
+isAtLeastFive.check(1); // [{ predicate: 'value is at least 5', valid: false, value: 1 }]
 ```
 
 #### isLt
@@ -334,7 +359,7 @@ Take a maximum value and returns a validator that check if the value is less tha
 import { isLt } from 'checkoid';
 const isLessThanFive = isLt(5);
 isLessThanFive.check(1); // undefined
-isLessThanFive.check(6); // [{ message: 'value must be less than 5', value: 6 }]
+isLessThanFive.check(6); // [{ predicate: 'value is less than 5', valid: false, value: 6 }]
 ```
 
 #### isLte
@@ -344,7 +369,7 @@ Take a maximum value and returns a validator that check if the value is less or 
 import { isLte } from 'checkoid';
 const isLessThanFive = isLte(5);
 isLessThanFive.check(1); // undefined
-isLessThanFive.check(6); // [{ message: 'value must be at most 5', value: 6 }]
+isLessThanFive.check(6); // [{ predicate: 'value is at most 5', valid: false, value: 6 }]
 ```
 
 #### match
@@ -356,7 +381,7 @@ const isEMail = match(/@/);
 
 isEmail.check('test@gmail.com'); // undefined
 isEmail.check('whatever');
-// [{ message: 'value must match pattern /@/', value: 'whatever' }]
+// [{ predicate: 'value match pattern /@/', valid: false, value: 'whatever' }]
 ```
 
 #### hasLengthOf
@@ -366,7 +391,7 @@ Take a number and returns a validator that check that the value as a length of t
 import { hasLengthOf } from 'checkoid';
 const hasLengthOfThree = hasLengthOf(3);
 hasLengthOfThree.check([1, 2, 3]); // undefined
-hasLengthOfThree.check([]); // [{ message: 'value must have a length of 3', value: [] }]
+hasLengthOfThree.check([]); // [{ predicate: 'value has a length of 3', valid: false, value: [] }]
 ```
 
 #### hasLengthGt
@@ -376,7 +401,7 @@ Take a number and returns a validator who check that the value as a length great
 import { hasLengthGt } from 'checkoid';
 const isLongerThanThree = hasLengthGt(3);
 isLongerThanThree.check([1, 2, 3, 4]); // undefined
-isLongerThanThree.check([1, 2, 3]); // [{ message: 'value must have a length greater than 3', value: [1, 2, 3] }]
+isLongerThanThree.check([1, 2, 3]); // [{ predicate: 'value has a length greater than 3', valid: false, value: [1, 2, 3] }]
 ```
 
 #### hasLengthGte
@@ -387,7 +412,7 @@ import { hasLengthGte } from 'checkoid';
 const hasLengthGteThree = hasLengthGte(3);
 hasLengthGteThree.check([1, 2, 3, 4]); // undefined
 hasLengthGteThree.check([1, 2, 3]); // undefined
-hasLengthGteThree.check([1, 2]); // [{ message: 'value must have a length of at least 3', value: [1, 2] }]
+hasLengthGteThree.check([1, 2]); // [{ predicate: 'value has a length of at least 3', valid: false, value: [1, 2] }]
 ```
 #### hasLengthLt
 Take a number and returns a validator who check that the value as a length smaller than the given number.
@@ -396,7 +421,7 @@ Take a number and returns a validator who check that the value as a length small
 import { hasLengthLt } from 'checkoid';
 const isShorterThanThree = hasLengthLt(3);
 isShorterThanThree.check([1, 2]); // undefined
-isShorterThanThree.check([1, 2, 3, 4]); // [{ message: 'value must have a length less than 3', value: [1, 2, 3, 4] }]
+isShorterThanThree.check([1, 2, 3, 4]); // [{ predicate: 'value has a length less than 3', valid: false, value: [1, 2, 3, 4] }]
 ```
 
 #### hasLengthLte
@@ -407,7 +432,8 @@ import { hasLengthLte } from 'checkoid';
 const hasLengthLteThree = hasLengthLte(3);
 hasLengthLteThree.check([1, 2]); // undefined
 hasLengthLteThree.check([1, 2, 3]); // undefined
-hasLengthLteThree.check([1, 2, 3, 4]); // [{ message: 'value must have a length of at most 3', value: [1, 2, 3, 4] }]
+hasLengthLteThree.check([1, 2, 3, 4]); 
+// [{ predicate: 'value has a length of at most 3', valid: false, value: [1, 2, 3, 4] }]
 ```
 
 #### arrayOf
@@ -421,14 +447,16 @@ isArrayOfNumber.check([1, "deux", 3]);
 // [
 //     {
 //         key: [1],
-//         message: "value must be a number",
+//         predicate: "value is a number",
+//         valid: false,
 //         value: "deux",
 //     },
 // ]
 isArrayOfNumber.check(null);
 // [
 //     {
-//         message: "value must be an array",
+//         predicate: "value must be an array",
+//         valid: false,
 //         value: null,
 //     },
 // ]
@@ -450,9 +478,9 @@ const validateUser = shape({
 
 validateUser.check({ email: 'john@gmail.com', password: 'shouldnotdisplaythis' }) // undefined
 validateUser.check({ email: 'john@gmail.com', password: 'secret' })
-// [{ key: ['password'], message: 'value must have a length greater than 8', value: 'secret' }]
+// [{ key: ['password'], predicate: 'value has a length greater than 8', valid: false, value: 'secret' }]
 validateUser.check('Hi I am John a valid user')
-// [{ message: 'value must be an object', value: 'Hi I am John a valid user' }]
+// [{ predicate: 'value is an object', valid: false, value: 'Hi I am John a valid user' }]
 ```
 
 shape also takes an exact boolean as second argument. When set to true, shape will also ensure that there is no key that is not tested by a validator.
@@ -468,7 +496,8 @@ const validateUser = shape({
 validateUser.check({ email: 'john@gmail.com', password: 'shouldnotdisplaythis' }) // undefined
 validateUser.check({ email: 'john@gmail.com', password: 'shouldnotdisplaythis', foo: 'bar', bar: 'baz' })
 // [{
-//     message: "Value has extraneous keys: foo, baz",
+//     predicate: "value accept only the following keys: email, password",
+//     valid: false,
 //     value: {
 //         email: 'john@gmail.com'
 //         password: 'shouldnotdisplaythis'
