@@ -12,24 +12,19 @@ Simply pass a function, that either return a value for an error, or nothing if t
 import { validator } = from 'checkoid';
 
 const isEmail = validator((value) => {
-    if (/@/.test(value)) {
-        return;
-    }
-    return 'value must be an email';
-});
+    return /@/.test(value);
+}, 'value is an email');
 const isNotGmail = validator((value) => {
-    if (/gmail.com/.test(value)) {
-        return 'value must not be a gmail adress';
-    }
-});
+    return !/gmail.com/.test(value);
+}, 'value is not a gmail adress');
 
 isEmail.check('test@gmail.com'); // undefined
 isNotGmail.check('test@gmail.com'); 
-// [{ message: 'value must not be a gmail adress', value: 'test@gmail.com' }]
+// [{ message: 'value is not a gmail adress', valid: false, value: 'test@gmail.com' }]
 isEmail.check('whatever');
-// [{ message: 'value must be an email', value: 'whatever' }]
+// [{ message: 'value is an email', valid: false, value: 'whatever' }]
 isNotGmail.check('whatever');
-// [{ message: 'value must not be a gmail adress', value: 'whatever' }]
+// [{ message: 'value is not a gmail adress', valid: false, value: 'whatever' }]
 ```
 
 And then combine them with `and`
@@ -38,11 +33,11 @@ And then combine them with `and`
 const isEmailNotFromGMail = isEMail.and(isNotGmail);
 isEmailNotFromGMail.check('whatever');
 // [
-//    { message: 'value must be an email', value: 'whatever' },
-//    { message: 'value must not be a gmail adress', value: 'test@gmail.com' }
+//    { message: 'value is an email', valid: false, value: 'whatever' },
+//    { message: 'value is not a gmail adress', valid: false, value: 'test@gmail.com' }
 // ]
 isEmailNotFromGMail.check('test@gmail.com'); 
-// [{ message: 'value must not be a gmail adress', value: 'test@gmail.com' }]
+// [{ message: 'value is not a gmail adress', valid: false, value: 'test@gmail.com' }]
 isEmailNotFromGMail.check('test@free.fr'); // undefined
 ```
 
@@ -50,10 +45,8 @@ Or with or
 
 ```js
 const isEmpty = validator((value) => {
-    if (!!value) {
-        return 'value is not empty';
-    }
-});
+    return !!value;
+}, 'value is empty');
 
 const isOptionalEmail = isEmail.or(isEmpty);
 
@@ -61,9 +54,44 @@ isOptionalEmail.check(''); // undefined
 isOptionalEmail.check('test@gmail.com'); // undefined
 isOptionalEmail.check('invalid mail');
 // [
-//     { message: 'value must be an email', value: 'invalid mail' },
-//     { message: ''value is not empty'', value: 'invalid mail' }
+//     { message: 'value is an email', valid: false, value: 'invalid mail' },
+//     { message: 'value is empty', valid: false, value: 'invalid mail' }
 // ]
+```
+
+Even with xor
+
+```js
+const hasFoo = validator((value) => {
+    return !!value.foo;
+}, 'value has foo');
+const hasBar = validator((value) => {
+    return !!value.bar;
+}, 'value has bar');
+
+const hadFooOrBarButNotBoth = hasFoo.xor(hasBar);
+
+isOptionalEmail.check({ foo: true }); // undefined
+isOptionalEmail.check({ bar: true }); // undefined
+isOptionalEmail.check({});
+// [
+//     { message: 'value has foo', valid: false, value: {} },
+//     { message: 'value has bar', valid: false, value: {} }
+// ]
+isOptionalEmail.check({ foo: true, bar: true });
+// [
+//     { message: 'value has foo', valid: true, inverted: true, value: {} },
+//     { message: 'value has bar', valid: true, inverted: true, value: {} }
+// ]
+```
+
+You can invert a validator with not.
+
+```js
+const isNoEmail = isEmail.not();
+isNoEmail.check('whatever'); // undefined
+isNoEmail.check('test@gmail.com'); 
+// [{ message: 'value is an email', valid: true, inverted: true, value: 'test@gmail.com' }]
 ```
 
 You can validate object too
@@ -72,22 +100,23 @@ You can validate object too
 import { shape } = from 'checkoid';
 
 const isGreaterThan = length => validator(value => {
-    if (value && value.length <= length) {
-        return `value must be at least ${length} characters long`;
-    }
-})
+    return value && value.length > length;
+}, `value is at least ${length} characters long`);
 
 // objectValidator takes an object of other validator and returns a validator
 const validateUser = shape({
-    email: isEmail.or(isAbsent),
+    email: isEmail.or(isEmpty),
     password: isGreaterThan(8),
 });
 
 validateUser.check({ email: 'john@gmail.com', password: 'shouldnotdisplaythis' }) // undefined
 validateUser.check({ email: 'john@gmail.com', password: 'secret' })
-// [{ key: ['password'], message: 'value must be at least 8 characters long', value: 'secret' }]
+// [{ key: ['password'], message: 'value is at least 8 characters long', valid: false, value: 'secret' }]
 validateUser.check('Hi I am John a valid user')
-// [{ message: 'value must be an object', value: 'Hi I am John a valid user' }]
+// [
+//     { message: 'value is an object', valid: false, value: 'Hi I am John a valid user' },
+//     { key: ['password'], message: 'value is at least 8 characters long', valid: false, value: undefined' },
+// ]
 ```
 
 Or array
@@ -101,8 +130,8 @@ const isEmailList = arrayOf(isEmail);
 isEmailList.check([]); // undefined
 isEmailList.check(['test@test.com', 'john@doe.com']); // undefined
 isEmailList.check(['test@test.com', 'I am a valid email', 'john@doe.com']);
-// [{ key: [1], message: 'value must be an email', value: 'I am a valid email' }]
-isEmailList.check('I am an email list'); // [{ message: 'value must be an array', value: 'I am an email list' }]
+// [{ key: [1], message: 'value is an email', valid: false, value: 'I am a valid email' }]
+isEmailList.check('I am an email list'); // [{ message: 'value is an array', valid: false, value: 'I am an email list' }]
 ```
 
 Or array of object
@@ -122,8 +151,8 @@ isUserList.check([
     { email: 'jane@gmail.com', password: '1234' },
 ]); 
 // [
-//    { key: [1], mesage: 'value is not an object', value: 'I am an user' },
-//    { key: [2, 'password'], message: 'value must be at least 8 characters long', value: '1234' },
+//    { key: [1], mesage: 'value is an object', valid: false, value: 'I am an user' },
+//    { key: [2, 'password'], message: 'value is at least 8 characters long', valid: false, value: '1234' },
 // ]
 ```
 
@@ -136,16 +165,13 @@ import { asyncValidator } = from 'checkoid';
 
 const doesUserIdExists = asyncValidator(async value => {
     const user = await fetchUser(value);
-    if (user) {
-        return;
-    }
+    return !!user;
 
-    return 'There is no user with this id';
-});
+}, 'There is a user with this id');
 
 // with an asynchronous validator the check method return a promise
 await doesUserIdExists.check('badId');
-// [{ message: 'There is no user with this id', value: 'badId' }]
+// [{ message: 'There is a user with this id', valid: false, value: 'badId' }]
 await doesUserIdExists.check('goodId'); // undefined'
 ```
 
