@@ -2,14 +2,16 @@
     "name": "checkoid",
     "version": "1.0.0",
     "description": "Checkoid: A validator library that allows to combine validator like you would lego piece.",
-    "main": "dist/bundle.js",
+    "main": "dist/lib/index.js",
+    "module": "dist/esm/index.js",
+    "type": "module",
     "files": [
         "dist"
     ],
     "scripts": {
         "test": "jest",
         "test-watch": "jest --watch",
-        "build": "rollup ./src/index.js --file ./dist/bundle.js --format umd --name 'checkoid' --compact"
+        "build": "rollup -c"
     },
     "repository": {
         "type": "git",
@@ -29,9 +31,13 @@
     "homepage": "https://github.com/marmelab/checkoid",
     "dependencies": {},
     "devDependencies": {
+        "@babel/preset-env": "7.11.5",
+        "@types/jest": "26.0.15",
         "jest": "26.4.2",
         "rollup": "2.28.2",
-        "babel-jest": "26.5.2",
-        "@babel/preset-env": "7.11.5"
+        "rollup-plugin-typescript2": "0.29.0",
+        "typescript": "4.0.3",
+        "ts-jest": "26.4.1",
+        "tslib": "2.0.1"
     }
 }
