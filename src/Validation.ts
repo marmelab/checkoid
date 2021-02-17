@@ -102,7 +102,7 @@ export interface AsyncValidation {
 
 export type SyncValidation = ValidValidation | InvalidValidation;
 
-const isValidValidation = (
+export const isValidValidation = (
     value: ValidValidation | InvalidValidation
 ): value is ValidValidation => value.isValid;
 

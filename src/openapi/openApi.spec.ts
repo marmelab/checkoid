@@ -1298,22 +1298,12 @@ describe("openapi", () => {
                 const schema: Schema = {
                     anyOf: [
                         {
-                            type: "object",
-                            properties: {
-                                id: {
-                                    type: "string",
-                                },
-                            },
-                            required: ["id"],
+                            type: "string",
+                            pattern: "foo",
                         },
                         {
-                            type: "object",
-                            properties: {
-                                name: {
-                                    type: "string",
-                                },
-                            },
-                            required: ["name"],
+                            type: "string",
+                            pattern: "bar",
                         },
                     ],
                 };
@@ -1322,89 +1312,167 @@ describe("openapi", () => {
 
                 expect(validator.check(null)).toEqual([
                     {
-                        inverted: false,
                         predicate: "value pass at least one validation",
                         valid: false,
+                        inverted: false,
                         value: null,
                     },
                     {
-                        inverted: false,
-                        predicate: "value is an object",
-                        valid: false,
-                        value: null,
-                    },
-                    {
-                        inverted: false,
-                        key: ["id"],
                         predicate: "value is a string",
                         valid: false,
+                        inverted: false,
                         value: null,
                     },
                     {
-                        inverted: false,
-                        predicate: "value is an object",
+                        predicate: "value match pattern /foo/",
                         valid: false,
+                        inverted: false,
                         value: null,
                     },
                     {
-                        inverted: false,
-                        key: ["name"],
                         predicate: "value is a string",
                         valid: false,
+                        inverted: false,
+                        value: null,
+                    },
+                    {
+                        predicate: "value match pattern /bar/",
+                        valid: false,
+                        inverted: false,
                         value: null,
                     },
                 ]);
 
-                expect(validator.check({ id: "id" })).toBe(undefined);
-                expect(validator.check({ id: 42 })).toEqual([
+                expect(validator.check("a string")).toEqual([
                     {
-                        inverted: false,
                         predicate: "value pass at least one validation",
                         valid: false,
-                        value: { id: 42 },
+                        inverted: false,
+                        value: "a string",
                     },
                     {
-                        inverted: false,
-                        key: ["id"],
-                        predicate: "value is a string",
+                        predicate: "value match pattern /foo/",
                         valid: false,
-                        value: 42,
+                        inverted: false,
+                        value: "a string",
                     },
                     {
-                        inverted: false,
-                        predicate: "value accept only the following keys: name",
+                        predicate: "value match pattern /bar/",
                         valid: false,
-                        value: {
-                            id: 42,
-                        },
-                    },
-                    {
                         inverted: false,
-                        key: ["name"],
-                        predicate: "value is a string",
-                        valid: false,
-                        value: undefined,
+                        value: "a string",
                     },
                 ]);
-                expect(validator.check({ name: "name" })).toBe(undefined);
-                expect(validator.check({ id: "id", name: "name" })).toEqual([
+
+                expect(validator.check("foo")).toBe(undefined);
+                expect(validator.check("bar")).toBe(undefined);
+                expect(validator.check("foobar")).toBe(undefined);
+            });
+        });
+
+        describe("oneof schema", () => {
+            it("should handle schema with oneOf prop", () => {
+                const schema: Schema = {
+                    oneOf: [
+                        {
+                            type: "string",
+                            pattern: "foo",
+                        },
+                        {
+                            type: "string",
+                            pattern: "bar",
+                        },
+                    ],
+                };
+
+                const validator = schemaToValidator(schema, document);
+
+                expect(validator.check(null)).toEqual([
                     {
-                        inverted: false,
-                        predicate: "value pass at least one validation",
+                        predicate: "value pass only one validation",
                         valid: false,
-                        value: { id: "id", name: "name" },
+                        inverted: false,
+                        value: null,
                     },
                     {
-                        inverted: false,
-                        predicate: "value accept only the following keys: id",
+                        predicate: "value is a string",
                         valid: false,
-                        value: { id: "id", name: "name" },
+                        inverted: false,
+                        value: null,
                     },
                     {
-                        inverted: false,
-                        predicate: "value accept only the following keys: name",
+                        predicate: "value match pattern /foo/",
                         valid: false,
-                        value: { id: "id", name: "name" },
+                        inverted: false,
+                        value: null,
+                    },
+                    {
+                        predicate: "value is a string",
+                        valid: false,
+                        inverted: false,
+                        value: null,
+                    },
+                    {
+                        predicate: "value match pattern /bar/",
+                        valid: false,
+                        inverted: false,
+                        value: null,
+                    },
+                ]);
+
+                expect(validator.check("a string")).toEqual([
+                    {
+                        predicate: "value pass only one validation",
+                        valid: false,
+                        inverted: false,
+                        value: "a string",
+                    },
+                    {
+                        predicate: "value match pattern /foo/",
+                        valid: false,
+                        inverted: false,
+                        value: "a string",
+                    },
+                    {
+                        predicate: "value match pattern /bar/",
+                        valid: false,
+                        inverted: false,
+                        value: "a string",
+                    },
+                ]);
+
+                expect(validator.check("foo")).toBe(undefined);
+                expect(validator.check("bar")).toBe(undefined);
+                expect(validator.check("foobar")).toEqual([
+                    {
+                        predicate: "value pass only one validation",
+                        valid: false,
+                        inverted: false,
+                        value: "foobar",
+                    },
+                    {
+                        predicate: "value is a string",
+                        valid: true,
+                        inverted: true,
+                        value: "foobar",
+                    },
+                    {
+                        predicate: "value match pattern /foo/",
+                        valid: true,
+                        inverted: true,
+                        value: "foobar",
+                    },
+                    {
+                        predicate: "value is a string",
+                        valid: true,
+                        inverted: true,
+                        value: "foobar",
+                    },
+                    {
+                        predicate: "value match pattern /bar/",
+                        valid: true,
+                        inverted: true,
+                        value: "foobar",
                     },
                 ]);
             });

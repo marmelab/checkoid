@@ -1,7 +1,7 @@
 import * as SwaggerParser from "@apidevtools/swagger-parser";
 import { OpenAPIV3 } from "openapi-types";
 
-import { Validator, validator } from "../Validator";
+import { Validator, validator, createValidator } from "../Validator";
 import { SyncValidation } from "../Validation";
 import { path } from "../utils";
 
@@ -26,6 +26,8 @@ import {
     isLte,
     isMultipleOf,
 } from "../validators/number";
+
+import { oneOf as oneOfComplex } from "../validators/oneOf";
 
 import { isBoolean } from "../validators/boolean";
 
@@ -131,10 +133,16 @@ export const schemaToValidator = (
                 validator(() => false, "value pass at least one validation")
             );
         }
+        if (schema.oneOf) {
+            return oneOfComplex(
+                schema.oneOf.map((schema) =>
+                    schemaToValidator(schema, document)
+                )
+            );
+        }
         if (schema.not) {
             return schemaToValidator(schema.not, document).not();
         }
-        // @TODO handle schema with no type but oneOf, or not props
         throw new Error("Unhandled schema");
     }
     switch (schema.type) {
