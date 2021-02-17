@@ -4,7 +4,7 @@ import { and, addKeyToMessage } from "../utils";
 
 export const isArray = validator(
     (value: any) => Array.isArray(value),
-    "value must be an array"
+    "value is an array"
 );
 
 export const arrayOf = <T extends SyncValidation | AsyncValidation>(

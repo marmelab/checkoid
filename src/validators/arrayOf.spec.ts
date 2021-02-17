@@ -3,11 +3,11 @@ import { shape } from "./object";
 import { validator, asyncValidator } from "../Validator";
 import { match } from "./string";
 
-const isEmail = match(/@/).format(() => `value must be an email`);
+const isEmail = match(/@/).format(() => `value is an email`);
 
 const isPresent = validator((value) => {
     return !!value;
-}, `value must be present`);
+}, `value is present`);
 
 const isPresentInDb = asyncValidator(async (id) => {
     await new Promise((resolve) => {
@@ -26,7 +26,7 @@ describe("arrayOf", () => {
         expect(res).toEqual([
             {
                 key: [1],
-                predicate: "value must be an email",
+                predicate: "value is an email",
                 inverted: false,
                 valid: false,
                 value: "not an email",
@@ -54,7 +54,7 @@ describe("arrayOf", () => {
         const res = arrayOf(emailValidator).check("Hi, trust me I am a list");
         expect(res).toEqual([
             {
-                predicate: "value must be an array",
+                predicate: "value is an array",
                 inverted: false,
                 valid: false,
                 value: "Hi, trust me I am a list",
@@ -74,7 +74,7 @@ describe("arrayOf", () => {
         expect(res).toEqual([
             {
                 key: [1, "email"],
-                predicate: "value must be an email",
+                predicate: "value is an email",
                 inverted: false,
                 valid: false,
                 value: "not an email",
@@ -92,14 +92,14 @@ describe("arrayOf", () => {
         expect(res).toEqual([
             {
                 key: [0, 1],
-                predicate: "value must be an email",
+                predicate: "value is an email",
                 inverted: false,
                 valid: false,
                 value: "not an email",
             },
             {
                 key: [1, 0],
-                predicate: "value must be an email",
+                predicate: "value is an email",
                 inverted: false,
                 valid: false,
                 value: "not an email",
@@ -126,35 +126,35 @@ describe("arrayOf", () => {
         expect(res).toEqual([
             {
                 key: ["users", 0],
-                predicate: "value must be an object",
+                predicate: "value is an object",
                 inverted: false,
                 valid: false,
                 value: "toto",
             },
             {
                 key: ["users", 0, "name"],
-                predicate: "value must be present",
+                predicate: "value is present",
                 inverted: false,
                 valid: false,
                 value: undefined,
             },
             {
                 key: ["users", 0, "email"],
-                predicate: "value must be an email",
+                predicate: "value is an email",
                 inverted: false,
                 valid: false,
                 value: undefined,
             },
             {
                 key: ["users", 1, "name"],
-                predicate: "value must be present",
+                predicate: "value is present",
                 inverted: false,
                 valid: false,
                 value: "",
             },
             {
                 key: ["users", 2, "email"],
-                predicate: "value must be an email",
+                predicate: "value is an email",
                 inverted: false,
                 valid: false,
                 value: "not an email",
@@ -168,7 +168,7 @@ describe("arrayOf", () => {
         ).toEqual([
             {
                 key: ["users"],
-                predicate: "value must be an array",
+                predicate: "value is an array",
                 inverted: false,
                 valid: false,
                 value: "A list of user :P",

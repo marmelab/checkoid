@@ -4,17 +4,17 @@ import { match } from "./validators/string";
 const isEmpty = validator((value) => {
     return !value ? true : false;
 }, "value is optional");
-const isEmail = match(/@/).format(() => `value must be an email`);
+const isEmail = match(/@/).format(() => `value is an email`);
 const isPresent = validator((value) => {
     return !!value;
-}, "value must be present");
+}, "value is present");
 
 describe("Validator", () => {
     describe("validator", () => {
         it("should allow to run validator returning Validation", () => {
             const validate = validator((value) => {
                 return /@/.test(value);
-            }, "value must be an email");
+            }, "value is an email");
 
             const validValidation = validate.check("some@email.com");
             expect(validValidation).toBeUndefined();
@@ -24,7 +24,7 @@ describe("Validator", () => {
             );
             expect(invalidValidation).toEqual([
                 {
-                    predicate: "value must be an email",
+                    predicate: "value is an email",
                     valid: false,
                     value: "I will type whatever I want",
                     inverted: false,
@@ -41,13 +41,13 @@ describe("Validator", () => {
             const noValueValidation = isPresent.and(isEmail).check("");
             expect(noValueValidation).toEqual([
                 {
-                    predicate: "value must be present",
+                    predicate: "value is present",
                     valid: false,
                     value: "",
                     inverted: false,
                 },
                 {
-                    predicate: "value must be an email",
+                    predicate: "value is an email",
                     valid: false,
                     value: "",
                     inverted: false,
@@ -59,7 +59,7 @@ describe("Validator", () => {
                 .check("whatever");
             expect(invalidEmailValidation).toEqual([
                 {
-                    predicate: "value must be an email",
+                    predicate: "value is an email",
                     valid: false,
                     value: "whatever",
                     inverted: false,
@@ -79,7 +79,7 @@ describe("Validator", () => {
                 .check("whatever");
             expect(invalidEmailValidation).toEqual([
                 {
-                    predicate: "value must be an email",
+                    predicate: "value is an email",
                     valid: false,
                     value: "whatever",
                     inverted: false,
@@ -122,7 +122,7 @@ describe("Validator", () => {
                 .check("");
             expect(invalidValidation2).toEqual([
                 {
-                    predicate: "value must be present",
+                    predicate: "value is present",
                     valid: false,
                     value: "",
                     inverted: false,

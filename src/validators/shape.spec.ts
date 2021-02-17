@@ -5,14 +5,14 @@ import { match } from "./string";
 
 const isPresent = validator((value) => {
     return !!value;
-}, `value must be present`);
+}, `value is present`);
 
 const isLongerThanTree = hasLengthGt(3);
 
 const isAbsent = validator((value) => {
     return !value;
-}, `value can be absent`);
-const isEmail = match(/@/).format(() => `value must be an email`);
+}, `value is absent`);
+const isEmail = match(/@/).format(() => `value is an email`);
 
 const isPresentInDb = asyncValidator(async (id) => {
     await new Promise((resolve) => {
@@ -35,7 +35,7 @@ describe("shape", () => {
                 key: ["email"],
                 valid: false,
                 inverted: false,
-                predicate: "value must be an email",
+                predicate: "value is an email",
             },
         ]);
         expect(
@@ -49,7 +49,7 @@ describe("shape", () => {
                 key: ["email"],
                 valid: false,
                 inverted: false,
-                predicate: "value must be an email",
+                predicate: "value is an email",
                 value: "not an email",
             },
         ]);
@@ -58,14 +58,14 @@ describe("shape", () => {
                 key: ["name"],
                 valid: false,
                 inverted: false,
-                predicate: "value must be present",
+                predicate: "value is present",
                 value: "",
             },
             {
                 key: ["email"],
                 valid: false,
                 inverted: false,
-                predicate: "value must be an email",
+                predicate: "value is an email",
                 value: "",
             },
         ]);
@@ -74,21 +74,21 @@ describe("shape", () => {
             {
                 valid: false,
                 inverted: false,
-                predicate: "value must be an object",
+                predicate: "value is an object",
                 value: "toto",
             },
             {
                 key: ["name"],
                 valid: false,
                 inverted: false,
-                predicate: "value must be present",
+                predicate: "value is present",
                 value: undefined,
             },
             {
                 key: ["email"],
                 valid: false,
                 inverted: false,
-                predicate: "value must be an email",
+                predicate: "value is an email",
                 value: undefined,
             },
         ]);
@@ -120,7 +120,7 @@ describe("shape", () => {
             {
                 valid: false,
                 inverted: false,
-                predicate: "Value has extraneous keys",
+                predicate: "Value has only the following keys: name,email",
                 value: {
                     name: "toto",
                     email: "toto@gmail.com",
@@ -159,7 +159,7 @@ describe("shape", () => {
                 key: ["email"],
                 valid: false,
                 inverted: false,
-                predicate: "value must be an email",
+                predicate: "value is an email",
                 value: "not an email",
             },
         ]);
@@ -186,14 +186,14 @@ describe("shape", () => {
                 key: ["email"],
                 valid: false,
                 inverted: false,
-                predicate: "value must be an email",
+                predicate: "value is an email",
                 value: "not an email",
             },
             {
                 key: ["email"],
                 valid: false,
                 inverted: false,
-                predicate: "value can be absent",
+                predicate: "value is absent",
                 value: "not an email",
             },
         ]);
@@ -202,14 +202,14 @@ describe("shape", () => {
                 key: ["name"],
                 valid: false,
                 inverted: false,
-                predicate: "value must be present",
+                predicate: "value is present",
                 value: "",
             },
             {
                 key: ["name"],
                 valid: false,
                 inverted: false,
-                predicate: "value must have a length greater than 3",
+                predicate: "value has a length greater than 3",
                 value: "",
             },
         ]);
@@ -218,7 +218,7 @@ describe("shape", () => {
                 key: ["name"],
                 valid: false,
                 inverted: false,
-                predicate: "value must have a length greater than 3",
+                predicate: "value has a length greater than 3",
                 value: "to",
             },
         ]);
@@ -247,21 +247,21 @@ describe("shape", () => {
                 key: ["user"],
                 valid: false,
                 inverted: false,
-                predicate: "value must be an object",
+                predicate: "value is an object",
                 value: undefined,
             },
             {
                 key: ["user", "name"],
                 valid: false,
                 inverted: false,
-                predicate: "value must be present",
+                predicate: "value is present",
                 value: undefined,
             },
             {
                 key: ["user", "name"],
                 valid: false,
                 inverted: false,
-                predicate: "value must have a length greater than 3",
+                predicate: "value has a length greater than 3",
                 value: undefined,
             },
         ]);

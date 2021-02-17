@@ -4,23 +4,23 @@ import { SyncValidation, AsyncValidation } from "../Validation";
 
 export const isObject = validator(
     (value) => typeof value === "object",
-    "value must be an object"
+    "value is an object"
 );
 
-export const hasNoExtraneousKeys = (keys: string[]) =>
+export const hasOnlyKeys = (keys: string[]) =>
     validator((value) => {
         if (typeof value !== "object") {
-            return;
+            return true;
         }
         const extraneousKeys = Object.keys(value).filter(
             (key) => !keys.includes(key)
         );
 
         return extraneousKeys.length <= 0;
-    }, `Value has extraneous keys`);
+    }, `Value has only the following keys: ${keys.join(",")}`);
 
 export const isExactObject = (keys: string[]) =>
-    isObject.and(hasNoExtraneousKeys(keys));
+    isObject.and(hasOnlyKeys(keys));
 
 interface Shape {
     (
