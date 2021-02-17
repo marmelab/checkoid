@@ -29,6 +29,7 @@ import {
 
 import { oneOf as oneOfComplex } from "../validators/oneOf";
 import { anyOf } from "../validators/anyOf";
+import { allOf } from "../validators/allOf";
 
 import { isBoolean } from "../validators/boolean";
 
@@ -115,13 +116,10 @@ export const schemaToValidator = (
     }
     if (!schema.type) {
         if (schema.allOf) {
-            return schema.allOf.reduce(
-                (finalValidator, schema) => {
-                    return finalValidator.and(
-                        schemaToValidator(schema, document)
-                    );
-                },
-                validator(() => true, "value is valid")
+            return allOf(
+                schema.allOf.map((schema) =>
+                    schemaToValidator(schema, document)
+                )
             );
         }
         if (schema.anyOf) {
