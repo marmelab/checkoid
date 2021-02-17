@@ -34,7 +34,7 @@ import { allOf } from "../validators/allOf";
 import { isBoolean } from "../validators/boolean";
 
 import { arrayOf, hasUniqueItems } from "../validators/array";
-import { shape, isObject, hasKeys } from "../validators/object";
+import { shape, isObject, objectOf } from "../validators/object";
 
 export type Schema = OpenAPIV3.SchemaObject;
 
@@ -163,15 +163,58 @@ export const schemaToValidator = (
             }
             return arrayValidator;
         case "object": {
-            if (schema.properties) {
-                const schemaValidator = shape(
-                    schemasToValidators(schema.properties, document),
-                    true,
-                    schema.required || []
-                );
+            const propertiesValidator = schema.properties
+                ? shape(
+                      schemasToValidators(schema.properties, document),
+                      !schema.additionalProperties,
+                      schema.required || []
+                  )
+                : null;
 
-                return schemaValidator;
+            const additionalPropertiesValidator =
+                schema.additionalProperties &&
+                typeof schema.additionalProperties == "object"
+                    ? objectOf(
+                          schemaToValidator(
+                              schema.additionalProperties,
+                              document
+                          )
+                      ).beforeHook((value) => {
+                          if (
+                              !schema.properties ||
+                              typeof value !== "object" ||
+                              value === null
+                          ) {
+                              return value;
+                          }
+                          const ignoredKeys = Object.keys(schema.properties);
+
+                          return Object.keys(value).reduce((acc, key) => {
+                              if (ignoredKeys.includes(key)) {
+                                  return acc;
+                              }
+
+                              return {
+                                  ...acc,
+                                  [key]: value[key],
+                              };
+                          }, {});
+                      })
+                    : null;
+
+            if (propertiesValidator && additionalPropertiesValidator) {
+                // @ts-ignore
+                return propertiesValidator.and(additionalPropertiesValidator);
             }
+
+            if (propertiesValidator) {
+                return propertiesValidator;
+            }
+
+            if (additionalPropertiesValidator) {
+                return additionalPropertiesValidator;
+            }
+
             return isObject;
         }
         default:

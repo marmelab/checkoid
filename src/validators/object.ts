@@ -1,5 +1,5 @@
 import { addKeyToMessage, and } from "../utils";
-import { validator, Validator } from "../Validator";
+import { validator, Validator, getEntry } from "../Validator";
 import { SyncValidation, AsyncValidation } from "../Validation";
 
 export const isObject = validator(
@@ -32,6 +32,23 @@ export const hasKeys = (keys: string[]) =>
 
         return missingKeys.length === 0;
     }, `value has the following keys: ${keys.join(",")}`);
+
+export const objectOf = (
+    validator: Validator<SyncValidation | AsyncValidation>
+) => {
+    return getEntry().chain((value: any) => {
+        const object = typeof value === "object" && value !== null ? value : {};
+        return Object.keys(object)
+            .map((key) => {
+                return validator
+                    .beforeHook((value) => value[key])
+                    .afterHook((message) =>
+                        addKeyToMessage(key)(message, object)
+                    );
+            })
+            .reduce(and, isObject);
+    });
+};
 
 interface Shape {
     (

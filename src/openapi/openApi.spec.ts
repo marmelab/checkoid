@@ -1291,6 +1291,75 @@ describe("openapi", () => {
                     },
                 ]);
             });
+
+            it("should handle type object schema with additionalProperties props", () => {
+                const schema: Schema = {
+                    type: "object",
+                    properties: {
+                        id: {
+                            type: "integer",
+                        },
+                        username: {
+                            type: "string",
+                        },
+                        email: {
+                            type: "string",
+                            pattern: "@.*?\\.",
+                        },
+                        password: {
+                            type: "string",
+                            minLength: 7,
+                        },
+                        sex: {
+                            type: "string",
+                            enum: ["M", "F", "N"],
+                        },
+                    },
+                    additionalProperties: { type: "string" },
+                };
+
+                const validator = schemaToValidator(schema, document);
+
+                expect(
+                    validator.check({
+                        id: 42,
+                        username: "john",
+                        email: "john@gmail.com",
+                        password: "47874fd5sq4f5z7fr",
+                        sex: "M",
+                    })
+                ).toBe(undefined);
+
+                expect(
+                    validator.check({
+                        id: 42,
+                        username: "john",
+                        email: "john@gmail.com",
+                        password: "47874fd5sq4f5z7fr",
+                        sex: "M",
+                        foo: "bar",
+                    })
+                ).toBe(undefined);
+
+                expect(
+                    validator.check({
+                        id: 42,
+                        username: "john",
+                        email: "john@gmail.com",
+                        password: "47874fd5sq4f5z7fr",
+                        sex: "M",
+                        foo: 42,
+                    })
+                ).toEqual([
+                    {
+                        inverted: false,
+                        key: ["foo"],
+                        predicate: "value is a string",
+                        valid: false,
+                        value: 42,
+                    },
+                ]);
+            });
         });
 
         describe("allof schema", () => {
