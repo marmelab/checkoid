@@ -1409,5 +1409,29 @@ describe("openapi", () => {
                 ]);
             });
         });
+
+        describe("not schema", () => {
+            it("should handle schema with not prop", () => {
+                const schema: Schema = {
+                    not: {
+                        type: "string",
+                    },
+                };
+
+                const validator = schemaToValidator(schema, document);
+
+                expect(validator.check(null)).toBeUndefined();
+                expect(validator.check(42)).toBeUndefined();
+
+                expect(validator.check("a string")).toEqual([
+                    {
+                        predicate: "value is a string",
+                        valid: true,
+                        inverted: true,
+                        value: "a string",
+                    },
+                ]);
+            });
+        });
     });
 });

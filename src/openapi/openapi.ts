@@ -131,6 +131,9 @@ export const schemaToValidator = (
                 validator(() => false, "value pass at least one validation")
             );
         }
+        if (schema.not) {
+            return schemaToValidator(schema.not, document).not();
+        }
         // @TODO handle schema with no type but oneOf, or not props
         throw new Error("Unhandled schema");
     }
