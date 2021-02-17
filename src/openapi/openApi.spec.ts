@@ -1087,6 +1087,64 @@ describe("openapi", () => {
                     },
                 ]);
             });
+
+            it("should check uniqueness if uniqueItems is set to true", () => {
+                const schema: Schema = {
+                    type: "array",
+                    uniqueItems: true,
+                    items: {
+                        type: "string",
+                    },
+                };
+
+                const validator = schemaToValidator(schema, document);
+
+                expect(validator.check([])).toBe(undefined);
+                expect(validator.check(["foo", "bar"])).toBe(undefined);
+                expect(validator.check(["foo", "bar", "foo"])).toEqual([
+                    {
+                        predicate: "value items are unique",
+                        valid: false,
+                        inverted: false,
+                        value: ["foo", "bar", "foo"],
+                    },
+                ]);
+            });
+
+            it("should check uniqueness should work with object too", () => {
+                const schema: Schema = {
+                    type: "array",
+                    uniqueItems: true,
+                    items: {
+                        type: "object",
+                    },
+                };
+
+                const validator = schemaToValidator(schema, document);
+
+                expect(validator.check([])).toBe(undefined);
+                expect(
+                    validator.check([{ value: "foo" }, { value: "bar" }])
+                ).toBe(undefined);
+                expect(
+                    validator.check([
+                        { value: "foo" },
+                        { value: "bar" },
+                        { value: "foo" },
+                    ])
+                ).toEqual([
+                    {
+                        predicate: "value items are unique",
+                        valid: false,
+                        inverted: false,
+                        value: [
+                            { value: "foo" },
+                            { value: "bar" },
+                            { value: "foo" },
+                        ],
+                    },
+                ]);
+            });
         });
 
         describe("object type", () => {

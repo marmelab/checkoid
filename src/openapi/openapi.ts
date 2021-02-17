@@ -33,7 +33,7 @@ import { allOf } from "../validators/allOf";
 
 import { isBoolean } from "../validators/boolean";
 
-import { arrayOf } from "../validators/array";
+import { arrayOf, hasUniqueItems } from "../validators/array";
 import { shape, isObject, hasKeys } from "../validators/object";
 
 export type Schema = OpenAPIV3.SchemaObject;
@@ -152,12 +152,16 @@ export const schemaToValidator = (
         case "boolean":
             return isBoolean;
         case "array":
-            return arrayOf(
+            const arrayValidator = arrayOf(
                 schemaToValidator(
                     schema.items as OpenAPIV3.ArraySchemaObject,
                     document
                 )
             );
+            if (schema.uniqueItems) {
+                return arrayValidator.and(hasUniqueItems);
+            }
+            return arrayValidator;
         case "object": {
             if (schema.properties) {
                 const schemaValidator = shape(
