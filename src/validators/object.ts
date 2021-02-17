@@ -50,6 +50,22 @@ export const objectOf = (
     });
 };
 
+export const hasMinimumKeys = (nbKey: number) =>
+    validator((value) => {
+        if (typeof value !== "object" || value === null) {
+            return false;
+        }
+        return Object.keys(value).length >= nbKey;
+    }, `value has at least ${nbKey} keys`);
+
+export const hasMaximumKeys = (nbKey: number) =>
+    validator((value) => {
+        if (typeof value !== "object" || value === null) {
+            return false;
+        }
+        return Object.keys(value).length <= nbKey;
+    }, `value has at most ${nbKey} keys`);
+
 interface Shape {
     (
         spec: {

@@ -3,7 +3,7 @@ import { OpenAPIV3 } from "openapi-types";
 
 import { Validator, validator, createValidator } from "../Validator";
 import { SyncValidation } from "../Validation";
-import { path } from "../utils";
+import { path, andMany } from "../utils";
 
 import {
     isString,
@@ -34,7 +34,13 @@ import { allOf } from "../validators/allOf";
 import { isBoolean } from "../validators/boolean";
 
 import { arrayOf, hasUniqueItems } from "../validators/array";
-import { shape, isObject, objectOf } from "../validators/object";
+import {
+    shape,
+    isObject,
+    objectOf,
+    hasMinimumKeys,
+    hasMaximumKeys,
+} from "../validators/object";
 
 export type Schema = OpenAPIV3.SchemaObject;
 
@@ -202,20 +208,26 @@ export const schemaToValidator = (
                       })
                     : null;
 
-            if (propertiesValidator && additionalPropertiesValidator) {
-                // @ts-ignore
-                return propertiesValidator.and(additionalPropertiesValidator);
+            const maxPropertiesValidator = schema.maxProperties
+                ? hasMaximumKeys(schema.maxProperties)
+                : null;
+
+            const minPropertiesValidator = schema.minProperties
+                ? hasMinimumKeys(schema.minProperties)
+                : null;
+
+            const validators = [
+                propertiesValidator,
+                additionalPropertiesValidator,
+                maxPropertiesValidator,
+                minPropertiesValidator,
+            ].filter((v) => !!v);
+
+            if (!validators.length) {
+                return isObject;
             }
 
-            if (propertiesValidator) {
-                return propertiesValidator;
-            }
-
-            if (additionalPropertiesValidator) {
-                return additionalPropertiesValidator;
-            }
-
-            return isObject;
+            return andMany(validators);
         }
         default:
     }

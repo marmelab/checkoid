@@ -1360,6 +1360,50 @@ describe("openapi", () => {
                     },
                 ]);
             });
+
+            it("should handle minProperties and maxProperties", () => {
+                const schema: Schema = {
+                    type: "object",
+                    additionalProperties: { type: "string" },
+                    minProperties: 1,
+                    maxProperties: 2,
+                };
+
+                const validator = schemaToValidator(schema, document);
+
+                expect(validator.check(null)).toEqual([
+                    {
+                        inverted: false,
+                        predicate: "value is an object",
+                        valid: false,
+                        value: null,
+                    },
+                    {
+                        inverted: false,
+                        predicate: "value has at most 2 keys",
+                        valid: false,
+                        value: null,
+                    },
+                    {
+                        inverted: false,
+                        predicate: "value has at least 1 keys",
+                        valid: false,
+                        value: null,
+                    },
+                ]);
+
+                expect(validator.check({ foo: "bar" })).toBeUndefined();
+                expect(
+                    validator.check({ foo: "bar", bar: "baz", baz: "uhoh" })
+                ).toEqual([
+                    {
+                        inverted: false,
+                        predicate: "value has at most 2 keys",
+                        valid: false,
+                        value: { bar: "baz", baz: "uhoh", foo: "bar" },
+                    },
+                ]);
+            });
         });
 
         describe("allof schema", () => {

@@ -3,6 +3,9 @@ import { ValidationResult } from "./Validation";
 export const and = (validator1: any, validator2: any) =>
     validator1.and(validator2);
 
+export const andMany = ([firstValidator, ...validators]: any[]) =>
+    validators.reduce(and, firstValidator);
+
 /**
  *
  * Retrieve the value at a given path.
