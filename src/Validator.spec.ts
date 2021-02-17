@@ -92,6 +92,54 @@ describe("Validator", () => {
                 },
             ]);
         });
+
+        it("should allow to combine validator with xor", () => {
+            const fooXorBarValidator = match(/foo/).xor(match(/bar/));
+            expect(fooXorBarValidator.check("foo is good")).toBeUndefined();
+            expect(fooXorBarValidator.check("bar is ggod")).toBeUndefined();
+            expect(fooXorBarValidator.check("but if I say foobar")).toEqual([
+                {
+                    predicate: "value match pattern /foo/",
+                    valid: true,
+                    inverted: true,
+                    value: "but if I say foobar",
+                },
+                {
+                    predicate: "value match pattern /bar/",
+                    valid: true,
+                    inverted: true,
+                    value: "but if I say foobar",
+                },
+            ]);
+            expect(fooXorBarValidator.check("or if I say neither")).toEqual([
+                {
+                    predicate: "value match pattern /foo/",
+                    valid: false,
+                    inverted: false,
+                    value: "or if I say neither",
+                },
+                {
+                    predicate: "value match pattern /bar/",
+                    valid: false,
+                    inverted: false,
+                    value: "or if I say neither",
+                },
+            ]);
+        });
+
+        describe("I can invert validator behavior with not", () => {
+            const isNotEmail = isEmail.not();
+
+            expect(isNotEmail.check("not an email")).toBeUndefined();
+            expect(isNotEmail.check("my.adress@gmail.fr")).toEqual([
+                {
+                    predicate: "value is an email",
+                    valid: true,
+                    inverted: true,
+                    value: "my.adress@gmail.fr",
+                },
+            ]);
+        });
     });
 
     describe("asyncValidator", () => {

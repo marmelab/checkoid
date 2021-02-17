@@ -51,6 +51,15 @@ export interface Validator<T extends SyncValidation | AsyncValidation> {
         : O extends AsyncValidation
         ? Validator<AsyncValidation>
         : Validator<SyncValidation>;
+
+    xor<O extends SyncValidation | AsyncValidation>(
+        other: Validator<O>
+    ): T extends AsyncValidation
+        ? Validator<AsyncValidation>
+        : O extends AsyncValidation
+        ? Validator<AsyncValidation>
+        : Validator<SyncValidation>;
+    not(): Validator<T>;
     // apply function to the validated value before it get validated
     beforeHook: (fn: (x: any) => any) => Validator<T>;
     // apply function to the ValidationResult if any
@@ -80,6 +89,10 @@ export const createValidator = <T extends SyncValidation | AsyncValidation>(
     and: (other) => createValidator((x) => run(x).and(other.run(x))),
     // @ts-ignore
     or: (other) => createValidator((x) => run(x).or(other.run(x))),
+    // @ts-ignore
+    xor: (other) => createValidator((x) => run(x).xor(other.run(x))),
+    // @ts-ignore
+    not: () => createValidator((x) => run(x).not()),
     // also known as contraMap
     beforeHook: (fn) => createValidator((x) => run(fn(x))),
     afterHook: (fn) =>
