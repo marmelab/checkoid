@@ -7,7 +7,7 @@ export const isObject = validator(
     "value is an object"
 );
 
-export const hasOnlyKeys = (keys: string[]) =>
+export const acceptKeys = (keys: string[]) =>
     validator((value) => {
         if (typeof value !== "object") {
             return true;
@@ -17,10 +17,9 @@ export const hasOnlyKeys = (keys: string[]) =>
         );
 
         return extraneousKeys.length <= 0;
-    }, `Value has only the following keys: ${keys.join(",")}`);
+    }, `Value accept only the following keys: ${keys.join(",")}`);
 
-export const isExactObject = (keys: string[]) =>
-    isObject.and(hasOnlyKeys(keys));
+export const isExactObject = (keys: string[]) => isObject.and(acceptKeys(keys));
 
 interface Shape {
     (
