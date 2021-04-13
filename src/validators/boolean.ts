@@ -1,13 +1,14 @@
 import { validator } from "../Validator";
 
-export const isBoolean = validator((value) =>
-    typeof value === "boolean" ? undefined : "value must be a boolean"
+export const isBoolean = validator(
+    (value) => typeof value === "boolean",
+    "value is a boolean"
 );
 
 export const isTrue = validator((value) => {
-    value === true ? undefined : "value must be true";
-});
+    return value === true;
+}, "value is true");
 
 export const isFalse = validator((value) => {
-    value === false ? undefined : "value must be true";
-});
+    return value === false;
+}, "value is false");

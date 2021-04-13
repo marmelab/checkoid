@@ -2,26 +2,24 @@ import { addKeyToMessage, and } from "../utils";
 import { validator, Validator } from "../Validator";
 import { SyncValidation, AsyncValidation } from "../Validation";
 
-export const isObject = validator((value) =>
-    typeof value === "object" ? undefined : "value must be an object"
+export const isObject = validator(
+    (value) => typeof value === "object",
+    "value is an object"
 );
 
-export const hasNoExtraneousKeys = (keys: string[]) =>
+export const acceptKeys = (keys: string[]) =>
     validator((value) => {
         if (typeof value !== "object") {
-            return;
+            return true;
         }
         const extraneousKeys = Object.keys(value).filter(
             (key) => !keys.includes(key)
         );
 
-        return extraneousKeys.length > 0
-            ? `Value has extraneous keys: ${extraneousKeys.join(", ")}`
-            : undefined;
-    });
+        return extraneousKeys.length <= 0;
+    }, `Value accept only the following keys: ${keys.join(",")}`);
 
-export const isExactObject = (keys: string[]) =>
-    isObject.and(hasNoExtraneousKeys(keys));
+export const isExactObject = (keys: string[]) => isObject.and(acceptKeys(keys));
 
 interface Shape {
     (
